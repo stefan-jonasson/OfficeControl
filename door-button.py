@@ -53,7 +53,7 @@ def generateSoundFiles(strings):
     return result
 
 
-messages = ["Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!", "Det stod TRYCK INTE PÅ KNAPPEN", "Tomten har ledigt", "Välkommen till BRSE", "Grattis du har vunnit högstavinsten, ett paket med inget alls!", "Vi är tyvärr inte här för tillfället", "Kan du inte läsa på skylten?"]
+messages = ["Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!", "Det stod TRYCK INTE PÅ KNAPPEN", "Tomten har tagit ledigt", "Välkommen till BRSE", "Grattis du har vunnit högstavinsten, ett paket med inget alls!", "Vi är tyvärr inte här för tillfället", "Kan du inte läsa på skylten?"]
 
 fileList = generateSoundFiles(messages);
 
