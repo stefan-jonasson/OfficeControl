@@ -72,7 +72,7 @@ def playSound(channel):
     pressedTimes += 1
     play_text("Knappen har tryckts {} gånger under dagen".format(pressedTimes))
     
-GPIO.add_event_detect(24, GPIO.FALLING, callback=playSound, bouncetime=6000)
+GPIO.add_event_detect(24, GPIO.RISING, callback=playSound, bouncetime=10000)
 
 print "Door Button Control Ready."
 
