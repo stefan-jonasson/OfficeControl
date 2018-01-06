@@ -5,7 +5,9 @@ from gtts import gTTS
 import RPi.GPIO as GPIO
 from sys import exit
 import random
-from tempfile import NamedTemporaryFile
+from availability import PersonAvailabilityChecker
+from hashlib import md5
+import os.path
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(24, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
@@ -37,11 +39,12 @@ def play_file(file_file):
 
 
 def generateSoundFile(string):
-    tfile = NamedTemporaryFile()
-    tfile.close()
-    messageTTS = gTTS(text=string.decode('utf8'), lang='sv')
-    messageTTS.save(tfile.name)
-    return tfile.name
+    fileName = "./cache/{}.mp3".format(md5(string).hexdigest())
+    # Only generate the file if it does not exist
+    if (not os.path.isfile(fileName)): 
+        messageTTS = gTTS(text=string.decode('utf8'), lang='sv')
+        messageTTS.save(fileName)
+    return fileName
 
 def generateSoundFiles(strings):
     '''
@@ -52,9 +55,23 @@ def generateSoundFiles(strings):
         result.append(generateSoundFile(string))
     return result
 
+pressedTimes = 0
+
+p1 = PersonAvailabilityChecker("Stefan", 'todo-load-from-config/calendar.ics')
+p2 = PersonAvailabilityChecker("Nalle", 'todo-load-from-config/calendar.ics')
+
+def playSound(channel):
+    global pressedTimes
+    play_file(random.choice(fileList))
+    play_text(p1.getAvailabliltyMessage())
+    play_text(p2.getAvailabliltyMessage())
+    pressedTimes += 1
+    play_text("Knappen har tryckts {} gånger under dagen".format(pressedTimes))
+    
 
 messages = ["Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!", "Det stod TRYCK INTE PÅ KNAPPEN", "Tomten har tagit ledigt", "Välkommen till BRSE", "Grattis du har vunnit högstavinsten, ett paket med inget alls!", "Vi är tyvärr inte här för tillfället", "Kan du inte läsa på skylten?"]
 
+print "Generating soundfiles"
 fileList = generateSoundFiles(messages);
 
 # set up the mixer
@@ -62,16 +79,9 @@ freq = 24000     # audio CD quality
 bitsize = -16    # unsigned 16 bit
 channels = 1     # 1 is mono, 2 is stereo
 
+print "Starting sound mixer"
+
 pg.mixer.init(freq, bitsize, channels)
-
-pressedTimes = 0
-
-def playSound(channel):
-    global pressedTimes
-    play_file(random.choice(fileList))
-    pressedTimes += 1
-    play_text("Knappen har tryckts {} gånger under dagen".format(pressedTimes))
-    
 GPIO.add_event_detect(24, GPIO.RISING, callback=playSound, bouncetime=10000)
 
 print "Door Button Control Ready."
