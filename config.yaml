@@ -1,0 +1,24 @@
+gpio:
+  pin: 24
+ical:
+  - name: Stefan
+    url: 'https://outlook.office365.com/owa/calendar/SECRET/SECRET/calendar.ics'
+  - name: Nalle
+    url: 'https://outlook.office365.com/owa/calendar/SECRET/SECRET/calendar.ics'
+  - name: Pelle
+    url: ''
+messages:
+  - "Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!"
+  - "Det stod TRYCK INTE PÅ KNAPPEN"
+  - "Tomten har tagit ledigt"
+  - "Välkommen till BRSE"
+  - "Grattis du har vunnit högstavinsten, ett paket med inget alls!"
+  - "Kan du inte läsa på skylten?"
+  - "Larm aktiverat"
+  - "Kärnvapen aktivt"
+  - "Stänger av allt, och då menar jag allt"
+  - "Du är nu identifierad. Vidtar åtgärder."
+sound: 
+  freq: 24000     # audio CD quality 
+  bitsize: -16    # unsigned 16 bit
+  channels: 1     # 1 is mono, 2 is stereo
