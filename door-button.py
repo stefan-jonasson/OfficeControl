@@ -35,7 +35,7 @@ with open("config.yml", 'r') as ymlfile:
 
 if cfg['gpio'] is None or cfg['gpio']['pin'] is None:
     print "GPIO pin needs to be set in config.yaml"
-    exit 1
+    exit(1)
 
 pin = cfg['gpio']['pin']
 
