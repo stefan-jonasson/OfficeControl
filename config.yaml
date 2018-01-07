@@ -1,12 +1,8 @@
 gpio:
   pin: 24
 ical:
-  - name: Stefan
-    url: 'https://outlook.office365.com/owa/calendar/SECRET/SECRET/calendar.ics'
-  - name: Nalle
-    url: 'https://outlook.office365.com/owa/calendar/SECRET/SECRET/calendar.ics'
-  - name: Pelle
-    url: ''
+  - name: namn
+    url: 'https://xxx/calendar.ics'
 messages:
   - "Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!"
   - "Det stod TRYCK INTE PÅ KNAPPEN"
@@ -22,3 +18,6 @@ sound:
   freq: 24000     # audio CD quality 
   bitsize: -16    # unsigned 16 bit
   channels: 1     # 1 is mono, 2 is stereo
+display:
+  width: 800
+  height: 600
