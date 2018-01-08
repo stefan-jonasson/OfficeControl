@@ -103,8 +103,8 @@ def main():
     # display settins
     displaycfg = cfg.get('display', {})
     game_display = pg.display.set_mode((displaycfg.get('width', 1024),
-                                        displaycfg.get('height', 768)))
-                                        #, pg.FULLSCREEN
+                                        displaycfg.get('height', 768)), pg.FULLSCREEN)
+
     pg.display.set_caption('Door Button Control')
 
     # Sound settings
