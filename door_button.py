@@ -1,14 +1,13 @@
 # encoding=utf-8
 """Various actions for our office door button"""
 import os
-import random
 
 import pygame as pg
 import yaml
 
 from availability import PersonAvailabilityChecker
 from key_press_counter import KeyPressCounter
-from ttsplay import generate_sound_files, play_file, play_text
+from ttsplay import TextMessagePlayer
 
 #The file to persist data
 DATA_FILE = 'data.yaml'
@@ -25,8 +24,8 @@ def display_centered_message(display, text, pos_height, size):
 def render_count_screen(display, num):
     """Render the count screen"""
     display.fill((0, 0, 0))
-    display_centered_message(display, "Antal knapptryckningar:", 30, 30)
-    display_centered_message(display, "{}".format(num), 50, 100)
+    display_centered_message(display, "Antal knapptryckningar idag:", 25, 50)
+    display_centered_message(display, "{}".format(num), 50, 200)
     pg.display.update()
 
 def get_counter_instance():
@@ -36,7 +35,6 @@ def get_counter_instance():
     if os.path.isfile(DATA_FILE):
         with open(DATA_FILE, 'r') as persisted:
             persisted_data = yaml.load(persisted)
-    print(persisted_data)
     return KeyPressCounter(persisted_data.get('count', 0), persisted_data.get('date', None))
 
 def init_gpio(cfg, action):
@@ -50,17 +48,8 @@ def init_gpio(cfg, action):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        def gpio_pin_pressed(channel):
-            """Handle button press events"""
-            # Dont listen to presses while sound is played
-            # GPIO.remove_event_detect(channel)
-            # Do the acitions
-            action()
-            # Start listening again
-            # GPIO.add_event_detect(channel, GPIO.RISING, callback=gpio_pin_pressed, bouncetime=1000)
-
         # Add event detection
-        GPIO.add_event_detect(pin, GPIO.RISING, callback=gpio_pin_pressed, bouncetime=1000)
+        GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
 
 def main():
     """The main program loop"""
@@ -69,13 +58,8 @@ def main():
         cfg = yaml.load(ymlfile)
 
     key_press_counter = get_counter_instance()
+    message_player = TextMessagePlayer()
     calendars = []
-    file_list = []
-
-    # Setup messages
-    if cfg.get('messages', None) is not None:
-        print("Generating soundfiles")
-        file_list = generate_sound_files(cfg['messages'])
 
     # Setup calendars
     if cfg.get('ical', None) is not None:
@@ -88,14 +72,12 @@ def main():
         """
         key_press_counter.increment()
         render_count_screen(game_display, key_press_counter.get_count())
+        # Only add new sound if there is nothing playing
+        if not pg.mixer.music.get_busy():
+            for calendar in calendars:
+                message_player.queue_text(calendar.get_availablilty_message())
 
-        if file_list:
-            play_file(random.choice(file_list))
-
-        for calendar in calendars:
-            play_text(calendar.get_availablilty_message())
-
-        play_text("Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
+            message_player.queue_text("Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
 
     # Setup GPIO
     init_gpio(cfg, button_pressed_action)
@@ -115,7 +97,6 @@ def main():
 
     clock = pg.time.Clock()
 
-
     print("Door Button Control Ready.")
 
     render_count_screen(game_display, key_press_counter.get_count())
@@ -125,6 +106,7 @@ def main():
     while running:
         try:
             key_press_counter.update()
+            message_player.update()
             for calendar in calendars:
                 calendar.update()
             for event in pg.event.get():
@@ -139,7 +121,7 @@ def main():
                         running = False
                         pg.quit()
 
-            clock.tick(600)
+            clock.tick(60)
 
         except KeyboardInterrupt:
             pg.quit()

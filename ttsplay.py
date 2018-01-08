@@ -8,31 +8,20 @@ from gtts import gTTS
 
 
 def play_text(text):
-    '''
-    Play the text as sound
-    '''
+    '''Play the text as sound'''
     print("Playing: {}".format(text))
     file_name = generate_sound_file(text)
     play_file(file_name)
 
 def play_file(file_name):
-    '''
-    stream file with mixer.music module in a blocking manner
-    this will stream the sound from disk while playing
-    '''
-    clock = pg.time.Clock()
-
+    '''Stream file with mixer. Non blocking'''
     try:
         pg.mixer.music.load(file_name)
         print("Music file {} loaded!".format(file_name))
     except pg.error:
         print("File {} not found! ({})".format(file_name, pg.get_error()))
         return
-
     pg.mixer.music.play()
-    while pg.mixer.music.get_busy():
-        # check if playback has finished
-        clock.tick(30)
 
 def generate_sound_file(string):
     '''
@@ -54,3 +43,25 @@ def generate_sound_files(strings):
     for string in strings:
         result.append(generate_sound_file(string))
     return result
+
+class TextMessagePlayer():
+    '''
+    Class for queuing and playing messages
+    '''
+    def __init__(self):
+        self.queue = []
+
+    def queue_text(self, text):
+        '''add a text to the queue'''
+        self.queue.append(generate_sound_file(text))
+
+    def play_queue_item(self):
+        '''play the next item in the queue'''
+        if self.queue:
+            item = self.queue.pop(0)
+            play_file(item)
+
+    def update(self):
+        '''play the next item if the mixer is available'''
+        if self.queue and not pg.mixer.music.get_busy():
+            self.play_queue_item()

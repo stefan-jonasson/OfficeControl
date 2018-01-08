@@ -102,3 +102,4 @@ ENV/
 cache/*
 config.yaml
 .vscode/*
+data.yaml

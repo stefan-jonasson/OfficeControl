@@ -20,9 +20,14 @@ class PersonAvailabilityChecker:
 
     def parse_calendar(self):
         """Parse the calendar"""
-        response = requests.get(self.ical_url)
-        self.gcal = Calendar.from_ical(response.content)
-        response.close()
+        try:
+            print("Updating calendar for {}".format(self.name))
+            response = requests.get(self.ical_url)
+            self.gcal = Calendar.from_ical(response.content)
+            response.close()
+            print("Done! Updating calendar for {}".format(self.name))
+        except requests.RequestException as inst:
+            print("Could not update calendar {} error: {}".format(self.ical_url, inst))
 
     def get_current_meeting(self):
         """get the current meeting"""
@@ -65,6 +70,6 @@ class PersonAvailabilityChecker:
     def update(self):
         """Reload the calendar from server when enough time as passed"""
         if (self.last_updated is None or
-                (datetime.now(timezone('CET')) - self.last_updated).total_seconds() > 300):
+                (datetime.now(timezone('CET')) - self.last_updated).total_seconds() > 600):
             self.last_updated = datetime.now(timezone('CET'))
             self.parse_calendar()
