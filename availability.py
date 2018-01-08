@@ -49,11 +49,17 @@ class PersonAvailabilityChecker:
         component = self.get_current_meeting()
         if component is None:
             return "{} har inget möte bokat".format(self.name)
+        
+        summary = "saknas"
+        if component.decoded('summary') is not None:
+            summary = component.decoded('summary').decode("utf-8", "ignore")
+            
+        location = "på okänd plats"
+        if component.decoded('location') is not None:
+            location = component.decoded('location').decode("utf-8", "ignore")
 
-        return "{} är upptagen med {} i {}".format(self.name,
-                                                   component.decoded('summary').decode("utf-8", "ignore"),
-                                                   component.decoded('location').decode("utf-8", "ignore"))
-
+        return "{} är upptagen med {} i {}".format(self.name, summary, location)
+    
     def update(self):
         """Reload the calendar from server when enough time as passed"""
         if (self.last_updated is None or
