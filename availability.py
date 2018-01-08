@@ -1,5 +1,6 @@
 # encoding=utf-8
-from datetime import date, datetime
+"""Load meetings for an online calendar"""
+from datetime import datetime
 
 import requests
 from icalendar import Calendar
@@ -14,14 +15,17 @@ class PersonAvailabilityChecker:
         self.name = name
         self.ical_url = ical_url
         self.gcal = None
-        self.parse_calendar()
+        self.last_updated = None
+        self.update()
 
     def parse_calendar(self):
+        """Parse the calendar"""
         response = requests.get(self.ical_url)
         self.gcal = Calendar.from_ical(response.content)
         response.close()
 
     def get_current_meeting(self):
+        """get the current meeting"""
         now = datetime.now(timezone('CET'))
 
         for component in self.gcal.walk():
@@ -41,8 +45,18 @@ class PersonAvailabilityChecker:
         return None
 
     def get_availablilty_message(self):
+        """ Get the message"""
         component = self.get_current_meeting()
         if component is None:
-            return "{} är ledig, har inget bokat för tillfället".format(self.name)
+            return "{} har inget möte bokat".format(self.name)
 
-        return "{} är upptagen i möte {}".format(self.name, component.decoded('summary'))
+        return "{} är upptagen med {} i {}".format(self.name,
+                                                   component.decoded('summary').decode("utf-8", "ignore"),
+                                                   component.decoded('location').decode("utf-8", "ignore"))
+
+    def update(self):
+        """Reload the calendar from server when enough time as passed"""
+        if (self.last_updated is None or
+                (datetime.now(timezone('CET')) - self.last_updated).total_seconds() > 300):
+            self.last_updated = datetime.now(timezone('CET'))
+            self.parse_calendar()
