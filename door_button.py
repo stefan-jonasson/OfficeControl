@@ -53,11 +53,11 @@ def init_gpio(cfg, action):
         def gpio_pin_pressed(channel):
             """Handle button press events"""
             # Dont listen to presses while sound is played
-            GPIO.remove_event_detect(channel)
+            # GPIO.remove_event_detect(channel)
             # Do the acitions
             action()
             # Start listening again
-            GPIO.add_event_detect(channel, GPIO.RISING, callback=gpio_pin_pressed, bouncetime=1000)
+            # GPIO.add_event_detect(channel, GPIO.RISING, callback=gpio_pin_pressed, bouncetime=1000)
 
         # Add event detection
         GPIO.add_event_detect(pin, GPIO.RISING, callback=gpio_pin_pressed, bouncetime=1000)
