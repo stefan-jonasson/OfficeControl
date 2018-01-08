@@ -76,15 +76,14 @@ def main():
     pg.init()
 
     clock = pg.time.Clock()
-
+    
     def button_pressed_action():
         """
         Execute actions on button presses
         """
         key_press_counter.increment()
-
         render_count_screen(game_display, key_press_counter.get_count())
-
+        
         if file_list:
             play_file(random.choice(file_list))
 

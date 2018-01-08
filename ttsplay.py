@@ -19,16 +19,20 @@ def play_file(file_name):
     '''
     stream file with mixer.music module in a blocking manner
     this will stream the sound from disk while playing
-    '''
-    if not pg.mixer.music.get_busy():
-        try:
-            pg.mixer.music.load(file_name)
-            print("Music file {} loaded!".format(file_name))
-        except pg.error:
-            print("File {} not found! ({})".format(file_name, pg.get_error()))
-            return
+    '''    
+    clock = pg.time.Clock()
+    
+    try:
+        pg.mixer.music.load(file_name)
+        print("Music file {} loaded!".format(file_name))
+    except pg.error:
+        print("File {} not found! ({})".format(file_name, pg.get_error()))
+        return
 
-        pg.mixer.music.play()
+    pg.mixer.music.play()
+    while pg.mixer.music.get_busy():
+        # check if playback has finished
+        clock.tick(30)
 
 def generate_sound_file(string):
     '''
