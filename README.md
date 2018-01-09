@@ -22,11 +22,32 @@ sound:
   channels: 1     # 1 is mono, 2 is stereo
   ```
 
+IF NOT ON Raspberry Pi you will need to comment out GPIO:
+```yaml
+#gpio:
+#  pin: 24 # the Bcm pin to connect the button to
+```
+
 ## Dependencies
-Tested with Python 2.7, but sould run with newer versions as well.
+Tested with Python 3, but sould run with newer versions as well.
 
 The voice files are generated with gTTS which uses Google TTS to generate mp3 files. Install with:
+
 `pip install gtts`
 
+The project requires pygame:
+
+`pip install pygame`
+
+The project requires yaml:
+
+`pip install pyyaml`
+
+The project requires icalendar:
+
+`pip install icalendar`
+
+
+
 ## Executing 
-Start the system by running: `python door-button.py`
+Start the system by running: `python door_button.py`
