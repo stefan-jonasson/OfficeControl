@@ -32,12 +32,19 @@ IF NOT ON Raspberry Pi you will need to comment out GPIO:
 Tested with Python 3, but sould run with newer versions as well.
 
 The voice files are generated with gTTS which uses Google TTS to generate mp3 files. Install with:
+
 `pip install gtts`
+
 The project requires pygame:
+
 `pip install pygame`
+
 The project requires yaml:
+
 `pip install pyyaml`
+
 The project requires icalendar:
+
 `pip install icalendar`
 
 
