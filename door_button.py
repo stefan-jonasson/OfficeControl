@@ -8,25 +8,10 @@ import yaml
 from availability import PersonAvailabilityChecker
 from key_press_counter import KeyPressCounter
 from ttsplay import TextMessagePlayer
+from graphics import bg, count
 
 #The file to persist data
 DATA_FILE = 'data.yaml'
-
-def display_centered_message(display, text, pos_height, size):
-    """Display a text at the specified height (percent)"""
-    large_text_font = pg.font.Font('assets/FreeSansBold.ttf', size)
-    text_surface = large_text_font.render(text, True, (200, 200, 200))
-    text_rect = text_surface.get_rect()
-    text_rect.center = ((pg.display.Info().current_w/2),
-                        (pg.display.Info().current_h * (pos_height / 100)))
-    display.blit(text_surface, text_rect)
-
-def render_count_screen(display, num):
-    """Render the count screen"""
-    display.fill((0, 0, 0))
-    display_centered_message(display, "Antal knapptryckningar idag:", 25, 50)
-    display_centered_message(display, "{}".format(num), 50, 200)
-    pg.display.update()
 
 def get_counter_instance():
     """Loads the counter"""
@@ -71,7 +56,6 @@ def main():
         Execute actions on button presses
         """
         key_press_counter.increment()
-        render_count_screen(game_display, key_press_counter.get_count())
         # Only add new sound if there is nothing playing
         if not pg.mixer.music.get_busy():
             for calendar in calendars:
@@ -85,7 +69,8 @@ def main():
     # display settins
     displaycfg = cfg.get('display', {})
     game_display = pg.display.set_mode((displaycfg.get('width', 1024),
-                                        displaycfg.get('height', 768)), pg.FULLSCREEN)
+                                        displaycfg.get('height', 768)))
+                                        #, pg.FULLSCREEN)
 
     pg.display.set_caption('Door Button Control')
 
@@ -96,10 +81,12 @@ def main():
     pg.init()
 
     clock = pg.time.Clock()
+    background = bg.Background('assets/room.png', (0, 0))
+    count_text = count.ButtonCount(key_press_counter, (270, 40))
 
     print("Door Button Control Ready.")
 
-    render_count_screen(game_display, key_press_counter.get_count())
+    #render_count_screen(game_display, key_press_counter.get_count())
 
     running = True
 
@@ -107,6 +94,11 @@ def main():
         try:
             key_press_counter.update()
             message_player.update()
+
+            background.render(game_display)
+            count_text.render(game_display)
+            pg.display.update()
+
             for calendar in calendars:
                 calendar.update()
             for event in pg.event.get():
@@ -122,7 +114,6 @@ def main():
                         pg.quit()
 
             clock.tick(60)
-
         except KeyboardInterrupt:
             pg.quit()
 
