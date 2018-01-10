@@ -9,6 +9,7 @@ from availability import PersonAvailabilityChecker
 from key_press_counter import KeyPressCounter
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
+from graphics.availability_display import AvailabliltyMessage
 
 #The file to persist data
 DATA_FILE = 'data.yaml'
@@ -35,6 +36,23 @@ def init_gpio(cfg, action):
 
         # Add event detection
         GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
+def init_pygame(cfg):
+    """ Initilize pygame related components"""
+    # display settins
+    displaycfg = cfg.get('display', {})
+    game_display = pg.display.set_mode((displaycfg.get('width', 1024),
+                                        displaycfg.get('height', 768)))
+                                        #, pg.FULLSCREEN)
+
+    pg.display.set_caption('Door Button Control')
+
+    # Sound settings
+    pg.mixer.pre_init(cfg.get('sound', {}).get('freq', 24000),
+                      cfg.get('sound', {}).get('bitsize', -16),
+                      cfg.get('sound', {}).get('channels', 1))
+    pg.init()
+    return game_display
+
 
 def main():
     """The main program loop"""
@@ -42,14 +60,20 @@ def main():
     with open("config.yaml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
+    # Start pygame, get the display object
+    game_display = init_pygame(cfg)
+
     key_press_counter = get_counter_instance()
     message_player = TextMessagePlayer()
     calendars = []
+    availability_text = []
 
     # Setup calendars
     if cfg.get('ical', None) is not None:
         for person in cfg['ical']:
-            calendars.append(PersonAvailabilityChecker(person['name'], person['url']))
+            availibility = PersonAvailabilityChecker(person['name'], person['url'])
+            calendars.append(availibility)
+            availability_text.append(AvailabliltyMessage(availibility, (person.get('pos_x', 0), person.get('pos_y', 0))))
 
     def button_pressed_action():
         """
@@ -65,20 +89,6 @@ def main():
 
     # Setup GPIO
     init_gpio(cfg, button_pressed_action)
-
-    # display settins
-    displaycfg = cfg.get('display', {})
-    game_display = pg.display.set_mode((displaycfg.get('width', 1024),
-                                        displaycfg.get('height', 768)))
-                                        #, pg.FULLSCREEN)
-
-    pg.display.set_caption('Door Button Control')
-
-    # Sound settings
-    pg.mixer.pre_init(cfg.get('sound', {}).get('freq', 24000),
-                      cfg.get('sound', {}).get('bitsize', -16),
-                      cfg.get('sound', {}).get('channels', 1))
-    pg.init()
 
     clock = pg.time.Clock()
     background = bg.Background('assets/room.png', (0, 0))
@@ -97,6 +107,9 @@ def main():
 
             background.render(game_display)
             count_text.render(game_display)
+            for message in availability_text:
+                message.render(game_display)
+
             pg.display.update()
 
             for calendar in calendars:

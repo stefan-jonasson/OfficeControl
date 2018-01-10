@@ -18,11 +18,11 @@ class TextDisplay():
         self.text = text
         self.text_surface = self.font.render(text, True, self.color)
         self.text_rect = self.text_surface.get_rect()
-        self.text_rect.top, self.text_rect.left = self.location
+        self.text_rect.left, self.text_rect.top = self.location
 
     def render(self, display):
         """render at the specified display position"""
-        display.blit(self.text_surface, self.text_rect)
+        display.blit(self.text_surface, self.text_rect, pygame.rect.Rect(0,0,130,self.text_rect.height+5))
 
 class CenterTextDisplay(TextDisplay):
     """
