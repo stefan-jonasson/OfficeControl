@@ -1,6 +1,6 @@
 # encoding=utf-8
 """Load meetings for an online calendar"""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 import requests
 from icalendar import Calendar, Event
@@ -16,6 +16,9 @@ class PersonAvailabilityChecker:
         self.ical_url = ical_url
         self.gcal = None
         self.last_updated = None
+        self.last_metting_checked = None
+        self.last_meeting_result = None
+        self._tzinfo = timezone('CET')
         self.update()
 
     def parse_calendar(self):
@@ -30,22 +33,31 @@ class PersonAvailabilityChecker:
             print("Could not update calendar {} error: {}".format(self.ical_url, inst))
 
     def get_current_meeting(self):
-        """get the current meeting"""
-        now = datetime.now(timezone('CET'))
+        """get the current meeting, only look for new values every new minute"""
+        now = datetime.now(self._tzinfo)
+        if (self.last_metting_checked is None or
+                now.minute != self.last_metting_checked.minute):
+            print ("Checking meeting..")
+            self.last_meeting_result = self.__get_current_meeting(now)
+            self.last_metting_checked = now
+        return self.last_meeting_result
 
-        for component in self.gcal.walk():
-            if component.name == "VEVENT":
-                start = component.get('dtstart').dt
-                end = component.get('dtend').dt
-                if isinstance(start, datetime) and isinstance(end, datetime):
-                    if (start < now and end > now):
+    def __get_current_meeting(self, check_time):
+        """get the current meeting"""
+        if self.gcal is not None:
+            for component in self.gcal.walk():
+                if component.name == "VEVENT":
+                    start = component.get('dtstart').dt
+                    end = component.get('dtend').dt
+                    # Convert all to datetime
+                    if not isinstance(start, datetime):
+                        start = datetime.combine(start, time(tzinfo=self._tzinfo))
+                    if not isinstance(end, datetime):
+                        end = datetime.combine(end, time(23, 59, tzinfo=self._tzinfo))
+
+                    if (start < check_time and end > check_time):
                         return Meeting(component)
-                    elif start > now:
-                        break
-                else:
-                    if (start < now.date() and end > now.date()):
-                        return Meeting(component)
-                    elif start > now.date():
+                    elif start > check_time:
                         break
         return Meeting(None)
 
@@ -70,8 +82,8 @@ class PersonAvailabilityChecker:
     def update(self):
         """Reload the calendar from server when enough time as passed"""
         if (self.last_updated is None or
-                (datetime.now(timezone('CET')) - self.last_updated).total_seconds() > 600):
-            self.last_updated = datetime.now(timezone('CET'))
+                (datetime.now(self._tzinfo) - self.last_updated).total_seconds() > 600):
+            self.last_updated = datetime.now(self._tzinfo)
             self.parse_calendar()
 
 
@@ -104,10 +116,9 @@ class Meeting():
         if self.event is not None:
             event_time = self.event.get('dtend').dt
             if isinstance(event_time, datetime):
-                return event_time.time
-            else:
-                if (event_time > (datetime.today() + timedelta(days=2)).date()):
-                    return "I övermorgon"
-                else:
-                    return "I morgon"
+                return event_time.strftime("%H:%M")
+
+            if event_time > (datetime.today() + timedelta(days=2)).date():
+                return "I övermorgon"
+            return "I morgon"
         return ""

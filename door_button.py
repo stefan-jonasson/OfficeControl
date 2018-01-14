@@ -36,6 +36,7 @@ def init_gpio(cfg, action):
 
         # Add event detection
         GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
+
 def init_pygame(cfg):
     """ Initilize pygame related components"""
     # display settins
@@ -73,7 +74,10 @@ def main():
         for person in cfg['ical']:
             availibility = PersonAvailabilityChecker(person['name'], person['url'])
             calendars.append(availibility)
-            availability_text.append(AvailabliltyMessage(availibility, (person.get('pos_x', 0), person.get('pos_y', 0))))
+            availability_text.append(AvailabliltyMessage(
+                availibility,
+                (person.get('pos_x', 0), person.get('pos_y', 0)),
+                person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))))
 
     def button_pressed_action():
         """
@@ -85,14 +89,16 @@ def main():
             for calendar in calendars:
                 message_player.queue_text(calendar.get_availablilty_message())
 
-            message_player.queue_text("Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
+            message_player.queue_text(
+                "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
 
     # Setup GPIO
     init_gpio(cfg, button_pressed_action)
 
     clock = pg.time.Clock()
-    background = bg.Background('assets/room.png', (0, 0))
-    count_text = count.ButtonCount(key_press_counter, (270, 40))
+    background = bg.Background(
+        "assets/{}".format(cfg.get("display", {}).get("background", "room.jpg")), (0, 0))
+    count_text = count.ButtonCount(key_press_counter, (577, 206))
 
     print("Door Button Control Ready.")
 
@@ -117,18 +123,18 @@ def main():
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False
-                    pg.quit()
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
                         button_pressed_action()
                     if event.key == pg.K_ESCAPE:
                         running = False
-                        pg.quit()
 
             clock.tick(60)
         except KeyboardInterrupt:
-            pg.quit()
+            pass
+
+    pg.quit()
 
     # Persist current status
     with open(DATA_FILE, 'w') as outfile:
