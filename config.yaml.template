@@ -1,23 +1,30 @@
 gpio:
   pin: 24
 ical:
-  - name: namn
+  - name: Stefan
     url: 'https://xxx/calendar.ics'
-messages:
-  - "Kontorsunderhållningen är stängd. Välkommen tillbaka vid nästa högtid!"
-  - "Det stod TRYCK INTE PÅ KNAPPEN"
-  - "Tomten har tagit ledigt"
-  - "Välkommen till BRSE"
-  - "Grattis du har vunnit högstavinsten, ett paket med inget alls!"
-  - "Kan du inte läsa på skylten?"
-  - "Larm aktiverat"
-  - "Kärnvapen aktivt"
-  - "Stänger av allt, och då menar jag allt"
-  - "Du är nu identifierad. Vidtar åtgärder."
-sound: 
-  freq: 24000     # audio CD quality 
+    pos_x: 537
+    pos_y: 516
+    offset: -120
+    image: stefan.jpg
+  - name: Nalle
+    url: 'https://xxx/calendar.ics'
+    pos_x: 753
+    pos_y: 353
+    offset: 120
+    image: bjorn.jpg
+  - name: Pelle
+    url: 'https://xxx/calendar.ics'
+    pos_x: 716
+    pos_y: 510
+    offset: 140
+    image: pelle.jpg
+sound:
+  freq: 24000     # audio CD quality
   bitsize: -16    # unsigned 16 bit
   channels: 1     # 1 is mono, 2 is stereo
 display:
-  width: 800
-  height: 600
+  width: 1280
+  height: 720
+  fullscreen: false
+  background: room_720p.png
