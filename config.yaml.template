@@ -26,5 +26,5 @@ sound:
 display:
   width: 1280
   height: 720
-  fullscreen: false
+  fullscreen: true
   background: room_720p.png
