@@ -100,15 +100,17 @@ class Meeting():
     def get_location(self):
         """Return the current location or empty"""
         if self.event is not None:
-            return self.event.decoded('location').decode("utf-8", "ignore")
-
+            location = self.event.decoded('location')
+            if location is not None:
+                return location.decode("utf-8", "ignore")
         return ""
 
     def get_summary(self):
         """Return the current meeting"""
         if self.event is not None:
-            return self.event.decoded('summary').decode("utf-8", "ignore")
-
+            summary = self.event.decoded('summary')
+            if summary is not None:
+                return summary.decode("utf-8", "ignore")
         return ""
 
     def get_duration(self):
@@ -117,8 +119,10 @@ class Meeting():
             event_time = self.event.get('dtend').dt
             if isinstance(event_time, datetime):
                 return event_time.strftime("%H:%M")
-
+            # Full day events can span multiple days (Right now we ignore normal multidate meetings)
             if event_time > (datetime.today() + timedelta(days=2)).date():
+                return event_time.strftime("%Y-%m-%d")
+            if event_time > (datetime.today() + timedelta(days=1)).date():
                 return "I övermorgon"
             return "I morgon"
         return ""
