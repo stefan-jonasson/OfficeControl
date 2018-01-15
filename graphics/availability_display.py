@@ -11,8 +11,8 @@ class AvailabliltyMessage:
     """
     def __init__(self, availablilty_provider: PersonAvailabilityChecker,
                  location: tuple, offset: int, avatar: str):
-        big_font = pygame.font.Font("assets/FreeSansbold.ttf", 20)
-        small_font = pygame.font.Font("assets/FreeSansbold.ttf", 15)
+        big_font = pygame.font.Font("assets/FreeSansBold.ttf", 20)
+        small_font = pygame.font.Font("assets/FreeSansBold.ttf", 15)
 
         self.availablilty_provider = availablilty_provider
         self.location = location
