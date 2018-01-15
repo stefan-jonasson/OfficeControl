@@ -79,7 +79,7 @@ def main():
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))))
 
-    def button_pressed_action():
+    def button_pressed_action(channel):
         """
         Execute actions on button presses
         """
