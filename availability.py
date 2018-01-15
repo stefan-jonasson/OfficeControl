@@ -37,7 +37,6 @@ class PersonAvailabilityChecker:
         now = datetime.now(self._tzinfo)
         if (self.last_metting_checked is None or
                 now.minute != self.last_metting_checked.minute):
-            print ("Checking meeting..")
             self.last_meeting_result = self.__get_current_meeting(now)
             self.last_metting_checked = now
         return self.last_meeting_result
