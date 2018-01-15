@@ -10,8 +10,8 @@ class ButtonCount:
     """
     def __init__(self, count: KeyPressCounter, location: tuple):
         self.count = count
-        big_font = pygame.font.Font("assets/FreeSansbold.ttf", 50)
-        small_font = pygame.font.Font("assets/FreeSansbold.ttf", 18)
+        big_font = pygame.font.Font("assets/FreeSansBold.ttf", 50)
+        small_font = pygame.font.Font("assets/FreeSansBold.ttf", 18)
 
         self.text_header = TextBox("Antal tryckningar:",
                                    small_font,
