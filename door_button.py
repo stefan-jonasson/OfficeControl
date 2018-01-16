@@ -4,6 +4,7 @@ import os
 
 import pygame as pg
 import yaml
+import datetime
 
 from availability import PersonAvailabilityChecker
 from key_press_counter import KeyPressCounter
@@ -79,6 +80,16 @@ def main():
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))))
 
+    def get_greeting_message(self):
+        # Play some greeting depending on the time of day
+        now = datetime.datetime.now()
+        if now.hour >= 7 and now.hour < 9
+            return "Good morning"
+        else if now.hour >= 15 and now.hour < 16
+            return "Good afternoon"
+        else if now.hour >= 16 and now.hour < 21
+            return "Good evening"
+
     def button_pressed_action(channel):
         """
         Execute actions on button presses
@@ -86,6 +97,8 @@ def main():
         key_press_counter.increment()
         # Only add new sound if there is nothing playing
         if not pg.mixer.music.get_busy():
+            message_player.queue_text(get_greeting_message())
+
             for calendar in calendars:
                 message_player.queue_text(calendar.get_availablilty_message())
 
