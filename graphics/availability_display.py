@@ -24,7 +24,6 @@ class AvailabliltyMessage:
             self.availablilty_provider.get_current_meeting())
 
         upcomming_meeting = self.availablilty_provider.get_next_meeting()
-        print(upcomming_meeting)
         if upcomming_meeting != self._upcomming_meeting:
             self._upcomming_meeting = upcomming_meeting
             if upcomming_meeting is not None:
