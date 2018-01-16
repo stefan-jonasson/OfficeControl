@@ -5,8 +5,9 @@ import os
 import pygame as pg
 import yaml
 
-from availability import AvialabilitySchduler
+from availability import AvialabilitySchduler, get_availablilty_message
 from key_press_counter import KeyPressCounter
+from meeting_notifier import MeetingNotifier
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
 from graphics.availability_display import AvailabliltyMessage
@@ -41,9 +42,12 @@ def init_pygame(cfg):
     """ Initilize pygame related components"""
     # display settins
     displaycfg = cfg.get('display', {})
+    flags = pg.DOUBLEBUF | pg.HWSURFACE
+    if displaycfg.get('fullscreen', False):
+        flags = flags | pg.FULLSCREEN
+
     game_display = pg.display.set_mode((displaycfg.get('width', 1024),
-                                        displaycfg.get('height', 768)))
-                                        #, pg.FULLSCREEN)
+                                        displaycfg.get('height', 768)), flags)
 
     pg.display.set_caption('Door Button Control')
 
@@ -66,19 +70,31 @@ def main():
 
     key_press_counter = get_counter_instance()
     message_player = TextMessagePlayer()
-    calendars = []
+    meeting_providers = []
+    meeting_notifiers = []
     availability_text = []
 
     # Setup calendars
     if cfg.get('ical', None) is not None:
         for person in cfg['ical']:
+            # schedule calendars for updates
             availibility = AvialabilitySchduler(person['url'])
             availibility.start()
+            # keep a reference to the calendars to be played at button press
+            meeting_providers.append((person['name'], availibility))
+            # Setup system for notify when a meeting approaches
+            meeting_notifiers.append(MeetingNotifier(
+                person['name'],
+                availibility,
+                message_player
+            ))
+            # Add meeting graphics
             availability_text.append(AvailabliltyMessage(
                 person['name'],
                 availibility,
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
-                person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))))
+                person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))
+            ))
 
     def button_pressed_action(channel):
         """
@@ -87,8 +103,9 @@ def main():
         key_press_counter.increment()
         # Only add new sound if there is nothing playing
         if not pg.mixer.music.get_busy():
-            for calendar in calendars:
-                message_player.queue_text(calendar.get_availablilty_message())
+            for (name, provider) in meeting_providers:
+                meeting = provider.get_current_meeting()
+                message_player.queue_text(get_availablilty_message(meeting, name))
 
             message_player.queue_text(
                 "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
@@ -117,6 +134,9 @@ def main():
             for message in availability_text:
                 message.render(game_display)
 
+            for meeting_notifier in meeting_notifiers:
+                meeting_notifier.update()
+
             pg.display.update()
 
             for event in pg.event.get():
@@ -129,7 +149,7 @@ def main():
                     if event.key == pg.K_ESCAPE:
                         running = False
 
-            clock.tick(60)
+            clock.tick(20)
         except KeyboardInterrupt:
             pass
 

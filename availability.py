@@ -9,6 +9,8 @@ import requests
 from icalendar import Calendar, Event
 from pytz import timezone
 
+_TIME_ZONE = timezone('CET')
+
 class AvialabilitySchduler(Thread):
     """Schedules updates to the calendar data"""
     def __init__(self, ical_url):
@@ -64,7 +66,6 @@ class PersonAvailabilityChecker:
         self._gcal = None
         self._last_updated = None
         self._lock = RLock()
-        self._tzinfo = timezone('CET')
 
     def parse_calendar(self):
         """Parse the calendar"""
@@ -82,11 +83,11 @@ class PersonAvailabilityChecker:
 
     def get_current_meeting(self):
         """get the current meeting"""
-        return self._get_current_meeting(datetime.now(self._tzinfo))
+        return self._get_current_meeting(datetime.now(_TIME_ZONE))
 
     def get_next_meeting(self):
         """get the next meeting"""
-        return self._get_next_meeting(datetime.now(self._tzinfo))
+        return self._get_next_meeting(datetime.now(_TIME_ZONE))
 
     def _get_current_meeting(self, check_time):
         """get the current meeting"""
@@ -98,9 +99,9 @@ class PersonAvailabilityChecker:
                         end = component.get('dtend').dt
                         # Convert all to datetime
                         if not isinstance(start, datetime):
-                            start = datetime.combine(start, time(tzinfo=self._tzinfo))
+                            start = datetime.combine(start, time(tzinfo=_TIME_ZONE))
                         if not isinstance(end, datetime):
-                            end = datetime.combine(end, time(23, 59, tzinfo=self._tzinfo))
+                            end = datetime.combine(end, time(23, 59, tzinfo=_TIME_ZONE))
 
                         if (start < check_time and end > check_time):
                             return Meeting(component)
@@ -116,7 +117,7 @@ class PersonAvailabilityChecker:
                     start = component.get('dtstart').dt
                     # Convert all to datetime
                     if not isinstance(start, datetime):
-                        start = datetime.combine(start, time(tzinfo=self._tzinfo))
+                        start = datetime.combine(start, time(tzinfo=_TIME_ZONE))
                     if start.date() > check_time.date():
                         break
                     if start > check_time:
@@ -126,8 +127,8 @@ class PersonAvailabilityChecker:
     def update(self):
         """Reload the calendar from server when enough time as passed"""
         if (self._last_updated is None or
-                (datetime.now(self._tzinfo) - self._last_updated).total_seconds() > 600):
-            self._last_updated = datetime.now(self._tzinfo)
+                (datetime.now(_TIME_ZONE) - self._last_updated).total_seconds() > 600):
+            self._last_updated = datetime.now(_TIME_ZONE)
             self.parse_calendar()
 
 
@@ -170,6 +171,14 @@ class Meeting():
         if self.event is not None:
             return _get_time_as_text(self.event.get('dtend').dt)
         return ""
+
+    def get_mimutes_to_start(self):
+        """Return the current meeting"""
+        if self.event is not None:
+            return round((self.event.get('dtstart').dt -
+                          datetime.now(_TIME_ZONE)).total_seconds() / 60)
+        return None
+
 
 def get_availablilty_message(meeting: Meeting, name: str):
     """ Get the message"""

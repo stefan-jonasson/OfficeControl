@@ -50,10 +50,9 @@ class AvailabliltyMessage:
 
         if self._upcomming_meeting_sprite is not None:
             if self._ballout.offset < 0:
-                pos = (base_pos[0] - 10, base_pos[1])
+                self._upcomming_meeting_sprite.rect.topright = (base_pos[0] - 10, base_pos[1])
             else:
-                pos = (base_pos[0] + self._ballout.width + 10, base_pos[1])
-            self._upcomming_meeting_sprite.rect.topleft = pos
+                self._upcomming_meeting_sprite.rect.topleft = (base_pos[0] + self._ballout.width + 10, base_pos[1])
             self._upcomming_meeting_sprite.render(surface)
 
 class MeetingText:
