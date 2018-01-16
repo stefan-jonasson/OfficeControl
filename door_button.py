@@ -5,7 +5,7 @@ import os
 import pygame as pg
 import yaml
 
-from availability import PersonAvailabilityChecker
+from availability import AvialabilitySchduler
 from key_press_counter import KeyPressCounter
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
@@ -72,9 +72,10 @@ def main():
     # Setup calendars
     if cfg.get('ical', None) is not None:
         for person in cfg['ical']:
-            availibility = PersonAvailabilityChecker(person['name'], person['url'])
-            calendars.append(availibility)
+            availibility = AvialabilitySchduler(person['url'])
+            availibility.start()
             availability_text.append(AvailabliltyMessage(
+                person['name'],
                 availibility,
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))))
@@ -118,15 +119,13 @@ def main():
 
             pg.display.update()
 
-            for calendar in calendars:
-                calendar.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     running = False
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
-                        button_pressed_action()
+                        button_pressed_action(None)
                     if event.key == pg.K_ESCAPE:
                         running = False
 

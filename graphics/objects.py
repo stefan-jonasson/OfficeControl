@@ -35,30 +35,42 @@ class Image(RendderableSprite):
     def render(self, surface):
         surface.blit(self.image, self.rect)
 
+class BorderedRect(RendderableSprite):
+    """ The base class for an image loded from a file """
+    def __init__(self, rect: pygame.rect.Rect):
+        """ Graphic Sprite Constructor. """
+
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+
+        self.rect = rect
+        # Load the image
+        self.image = pygame.surface.Surface((rect.width, rect.height))
+        # Fetch the rectangle object that has the dimensions of the image
+        # Update the position of this object by setting the values
+        # of rect.x and rect.y
+         # Draw anchor line
+        self.image.fill(BACKGROUND)
+        pygame.draw.rect(self.image, FOREGROUND, pygame.Rect(0, 0, rect.width - 1, rect.height - 1), 2)
+
+    def render(self, surface):
+        surface.blit(self.image, self.rect)
+
 class Ballout():
     """ Paint the boubble at the offset from the anchor point """
     def __init__(self, width: int, height: int, anchor_location: tuple, offset: int):
         self.offset = offset
         self.anc_x, self.anc_y = anchor_location
-        self.set_height(height)
-        self.set_width(width)
+        self.set_size((width, height))
 
     def set_size(self, size: tuple):
         """ Set the size """
-        self.set_width(size[0])
-        self.set_height(size[1])
-
-    def set_width(self, width: int):
-        "set the width of the control"
-        self.width = width
+        self.width = size[0]
+        self.height = size[1] + 2 #Border should be outside
         if self.offset < 0:
             self.top_x = abs(self.anc_x + self.offset - self.width)
         else:
             self.top_x = abs(self.anc_x + self.offset)
-
-    def set_height(self, height: int):
-        "set the height of the control"
-        self.height = height + 2 #Border should be outside
         self.top_y = abs(self.anc_y + OFFSET_HEIGHT - self.height - 5)
 
     def get_pos(self):
@@ -67,6 +79,7 @@ class Ballout():
 
     def render(self, surface):
         """ render at the specified display position """
+
         # Draw anchor line
         pygame.draw.lines(surface, FOREGROUND, False,
                           [[self.anc_x, self.anc_y],
@@ -80,9 +93,8 @@ class Ballout():
         pygame.gfxdraw.filled_circle(surface, self.anc_x, self.anc_y, 6, ACCENT)
 
         # Draw box then border
-        rect = pygame.Rect(self.top_x, self.top_y, self.width, self.height)
-        surface.fill(BACKGROUND, rect)
-        pygame.draw.rect(surface, FOREGROUND, rect, 2)
+        box = BorderedRect(pygame.Rect(self.top_x, self.top_y, self.width, self.height))
+        box.render(surface)
 
 class TextBox(pygame.sprite.Sprite):
     """
