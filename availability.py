@@ -101,9 +101,8 @@ class Meeting():
         if self.event is not None:
             location = self.event.decoded('location')
             if location is not None:
-                locationStr=location.decode("utf-8", "ignore")
-                locationStr.replace("_"," ")
-                locationStr.replace("Konf ","Konferensrum ")
+                locationStr = location.decode("utf-8", "ignore")
+                locationStr.replace("_"," ").locationStr.replace("Konf ","Konferensrum ")
                 return locationStr
         return ""
 
