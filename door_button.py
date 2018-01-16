@@ -83,7 +83,7 @@ def main():
     def get_greeting_message(self):
         # Play some greeting depending on the time of day
         now = datetime.datetime.now()
-        if now.hour >= 07 and now.hour < 09
+        if now.hour >= 7 and now.hour < 9
             return "Good morning"
         else if now.hour >= 15 and now.hour < 16
             return "Good afternoon"
