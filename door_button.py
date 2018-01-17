@@ -4,13 +4,19 @@ import os
 
 import pygame as pg
 import yaml
-
+import datetime
 from availability import AvialabilitySchduler, get_availablilty_message
 from key_press_counter import KeyPressCounter
 from meeting_notifier import MeetingNotifier
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
 from graphics.availability_display import AvailabliltyMessage
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    print("Error importing RPi.GPIO! This is probably because you need superuser privileges. You can achieve this by using 'sudo' to run your script")
+except ImportError:
+    pass
 
 #The file to persist data
 DATA_FILE = 'data.yaml'
@@ -24,19 +30,15 @@ def get_counter_instance():
             persisted_data = yaml.load(persisted)
     return KeyPressCounter(persisted_data.get('count', 0), persisted_data.get('date', None))
 
-def init_gpio(cfg, action):
-    """Connects the gpio button events"""
+def init_gpio(cfg):
+    """Init GPIO"""
     # Only initilize GPIO of configured in yaml
     if cfg.get('gpio', False):
-        import RPi.GPIO as GPIO
-        pin = cfg['gpio']['pin']
-
         # Setup GPIO
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-        # Add event detection
-        GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
+        return True
+    return False
 
 def init_pygame(cfg):
     """ Initilize pygame related components"""
@@ -58,15 +60,32 @@ def init_pygame(cfg):
     pg.init()
     return game_display
 
-    def get_greeting_message(self):
-        # Play some greeting depending on the time of day
-        now = datetime.datetime.now()
-        if now.hour >= 7 and now.hour < 9
-            return "Good morning"
-        else if now.hour >= 15 and now.hour < 16
-            return "Good afternoon"
-        else if now.hour >= 16 and now.hour < 21
-            return "Good evening"
+def get_greeting_message():
+    # Play some greeting depending on the time of day
+    now = datetime.datetime.now()
+    if now.hour >= 7 and now.hour < 9
+        return "Good morning"
+    else if now.hour >= 15 and now.hour < 16
+        return "Good afternoon"
+    else if now.hour >= 16 and now.hour < 21
+        return "Good evening"
+
+def button_pressed_action(meeting_providers, key_press_counter, message_player):
+    """
+    Execute actions on button presses
+    """
+    key_press_counter.increment()
+    # Only add new sound if there is nothing playing
+    if not pg.mixer.music.get_busy():
+        message_player.queue_text(get_greeting_message())
+        for (name, provider) in meeting_providers:
+            meeting = provider.get_current_meeting()
+            message_player.queue_text(get_availablilty_message(meeting, name))
+
+        message_player.queue_text(
+            "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
+
+
 
 def main():
     """The main program loop"""
@@ -105,24 +124,9 @@ def main():
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))
             ))
 
-    def button_pressed_action(channel):
-        """
-        Execute actions on button presses
-        """
-        key_press_counter.increment()
-        # Only add new sound if there is nothing playing
-        if not pg.mixer.music.get_busy():
-            message_player.queue_text(get_greeting_message())
-
-            for (name, provider) in meeting_providers:
-                meeting = provider.get_current_meeting()
-                message_player.queue_text(get_availablilty_message(meeting, name))
-
-            message_player.queue_text(
-                "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
 
     # Setup GPIO
-    init_gpio(cfg, button_pressed_action)
+    gpio = init_gpio(cfg)
 
     clock = pg.time.Clock()
     background = bg.Background(
@@ -134,9 +138,17 @@ def main():
     #render_count_screen(game_display, key_press_counter.get_count())
 
     running = True
-
+    press_ticks = 0
     while running:
         try:
+            if gpio and GPIO.input(cfg['gpio']['pin']) == GPIO.HIGH:
+                if press_ticks > 5:
+                    press_ticks = 0
+                    button_pressed_action(meeting_providers, key_press_counter, message_player)
+                else:
+                    print("Detected keypress")
+                    press_ticks += 1
+
             key_press_counter.update()
             message_player.update()
 
@@ -156,13 +168,15 @@ def main():
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
-                        button_pressed_action(None)
+                        button_pressed_action(meeting_providers, key_press_counter, message_player)
                     if event.key == pg.K_ESCAPE:
                         running = False
 
             clock.tick(20)
         except KeyboardInterrupt:
             pass
+    if gpio:
+        GPIO.cleanup()
 
     pg.quit()
 
