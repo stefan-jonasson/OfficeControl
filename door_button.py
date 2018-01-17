@@ -1,10 +1,9 @@
 # encoding=utf-8
 """Various actions for our office door button"""
 import os
-
+import datetime
 import pygame as pg
 import yaml
-import datetime
 from availability import AvialabilitySchduler, get_availablilty_message
 from key_press_counter import KeyPressCounter
 from meeting_notifier import MeetingNotifier
@@ -37,6 +36,7 @@ def init_gpio(cfg):
         # Setup GPIO
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GIPO.add_event_detect(cfg['gpio']['pin'], GPIO.RISING)
         return True
     return False
 
@@ -61,14 +61,15 @@ def init_pygame(cfg):
     return game_display
 
 def get_greeting_message():
-    # Play some greeting depending on the time of day
+    """Play some greeting depending on the time of day"""
     now = datetime.datetime.now()
-    if now.hour >= 7 and now.hour < 9
+    if now.hour >= 7 and now.hour < 9:
         return "Good morning"
-    else if now.hour >= 15 and now.hour < 16
+    elif now.hour >= 15 and now.hour < 16:
         return "Good afternoon"
-    else if now.hour >= 16 and now.hour < 21
+    elif now.hour >= 16 and now.hour < 21:
         return "Good evening"
+    return None
 
 def button_pressed_action(meeting_providers, key_press_counter, message_player):
     """
@@ -77,7 +78,9 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
     key_press_counter.increment()
     # Only add new sound if there is nothing playing
     if not pg.mixer.music.get_busy():
-        message_player.queue_text(get_greeting_message())
+        greet = get_greeting_message()
+        if greet is not None:
+            message_player.queue_text()
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
             message_player.queue_text(get_availablilty_message(meeting, name))
@@ -141,7 +144,7 @@ def main():
     press_ticks = 0
     while running:
         try:
-            if gpio and GPIO.input(cfg['gpio']['pin']) == GPIO.HIGH:
+            if gpio and GPIO.event_detected(cfg['gpio']['pin']):
                 if press_ticks > 5:
                     press_ticks = 0
                     button_pressed_action(meeting_providers, key_press_counter, message_player)
