@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta, time
 from threading import RLock, Thread
 import time as t
+import re
 
 import schedule
 import requests
@@ -135,6 +136,8 @@ class PersonAvailabilityChecker:
 class Meeting():
     """Extracts information from a icalendar meeting component"""
 
+    regex = re.compile(r"(\_[^ ]+)|Växjö.|(\ [0-9]+P)", re.IGNORECASE)
+
     def __init__(self, event: Event):
         self.event = event
 
@@ -148,7 +151,7 @@ class Meeting():
             try:
                 location = self.event.decoded('location')
                 if location is not None:
-                    return location.decode("utf-8", "ignore").replace("_Konf ", "")
+                    return Meeting.regex.sub("", location.decode("utf-8", "ignore")).strip()
             except KeyError:
                 return "Okänd"
         return ""
