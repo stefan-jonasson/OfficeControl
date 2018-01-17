@@ -4,7 +4,7 @@ import os
 
 import pygame as pg
 import yaml
-
+import datetime
 from availability import AvialabilitySchduler, get_availablilty_message
 from key_press_counter import KeyPressCounter
 from meeting_notifier import MeetingNotifier
@@ -60,6 +60,16 @@ def init_pygame(cfg):
     pg.init()
     return game_display
 
+def get_greeting_message():
+    # Play some greeting depending on the time of day
+    now = datetime.datetime.now()
+    if now.hour >= 7 and now.hour < 9
+        return "Good morning"
+    else if now.hour >= 15 and now.hour < 16
+        return "Good afternoon"
+    else if now.hour >= 16 and now.hour < 21
+        return "Good evening"
+
 def button_pressed_action(meeting_providers, key_press_counter, message_player):
     """
     Execute actions on button presses
@@ -67,12 +77,14 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
     key_press_counter.increment()
     # Only add new sound if there is nothing playing
     if not pg.mixer.music.get_busy():
+        message_player.queue_text(get_greeting_message())
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
             message_player.queue_text(get_availablilty_message(meeting, name))
 
         message_player.queue_text(
             "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
+
 
 
 def main():
@@ -111,6 +123,7 @@ def main():
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))
             ))
+
 
     # Setup GPIO
     gpio = init_gpio(cfg)
