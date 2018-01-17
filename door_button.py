@@ -28,15 +28,20 @@ def init_gpio(cfg, action):
     """Connects the gpio button events"""
     # Only initilize GPIO of configured in yaml
     if cfg.get('gpio', False):
-        import RPi.GPIO as GPIO
-        pin = cfg['gpio']['pin']
+        try:
+            import RPi.GPIO as GPIO
+            pin = cfg['gpio']['pin']
 
-        # Setup GPIO
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            # Setup GPIO
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        # Add event detection
-        GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
+            # Add event detection
+            GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
+            return True
+        except RuntimeError:
+            print("Error importing RPi.GPIO! This is probably because you need superuser privileges. You can achieve this by using 'sudo' to run your script")
+    return False
 
 def init_pygame(cfg):
     """ Initilize pygame related components"""
@@ -57,6 +62,20 @@ def init_pygame(cfg):
                       cfg.get('sound', {}).get('channels', 1))
     pg.init()
     return game_display
+
+def button_pressed_action(meeting_providers, key_press_counter):
+    """
+    Execute actions on button presses
+    """
+    key_press_counter.increment()
+    # Only add new sound if there is nothing playing
+    if not pg.mixer.music.get_busy():
+        for (name, provider) in meeting_providers:
+            meeting = provider.get_current_meeting()
+            message_player.queue_text(get_availablilty_message(meeting, name))
+
+        message_player.queue_text(
+            "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
 
 
 def main():
@@ -96,22 +115,8 @@ def main():
                 person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))
             ))
 
-    def button_pressed_action(channel):
-        """
-        Execute actions on button presses
-        """
-        key_press_counter.increment()
-        # Only add new sound if there is nothing playing
-        if not pg.mixer.music.get_busy():
-            for (name, provider) in meeting_providers:
-                meeting = provider.get_current_meeting()
-                message_player.queue_text(get_availablilty_message(meeting, name))
-
-            message_player.queue_text(
-                "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
-
     # Setup GPIO
-    init_gpio(cfg, button_pressed_action)
+    gpio = init_gpio(cfg, button_pressed_action)
 
     clock = pg.time.Clock()
     background = bg.Background(
@@ -123,9 +128,16 @@ def main():
     #render_count_screen(game_display, key_press_counter.get_count())
 
     running = True
-
+    press_ticks = 0
     while running:
         try:
+            if gpio and GPIO.input(cfg['gpio']['pin']):
+                if press_ticks > 5:
+                    press_ticks = 0
+                    button_pressed_action(meeting_providers, key_press_counter)
+                else:
+                    press_ticks += 1
+
             key_press_counter.update()
             message_player.update()
 
@@ -145,13 +157,15 @@ def main():
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
-                        button_pressed_action(None)
+                        button_pressed_action(meeting_providers, key_press_counter)
                     if event.key == pg.K_ESCAPE:
                         running = False
 
             clock.tick(20)
         except KeyboardInterrupt:
             pass
+    if gpio:
+        GPIO.cleanup()
 
     pg.quit()
 
