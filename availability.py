@@ -147,9 +147,9 @@ class Meeting():
         if self.event is not None:
             location = self.event.decoded('location')
             if location is not None:
-                locationStr = location.decode("utf-8", "ignore")
-                locationStr.replace("_"," ").replace("Konf ","Konferensrum ")
-                return locationStr
+                location = location.decode("utf-8", "ignore")
+                location.replace("_", " ").replace("Konf ", "Konferensrum ")
+                return location
         return ""
 
     def get_summary(self):
@@ -182,7 +182,7 @@ class Meeting():
 
 def get_availablilty_message(meeting: Meeting, name: str):
     """ Get the message"""
-    if meeting.is_available():
+    if meeting is None or meeting.is_available():
         return "{} har inget möte bokat".format(name)
 
     summary = meeting.get_summary()
