@@ -36,7 +36,7 @@ def init_gpio(cfg):
         # Setup GPIO
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GIPO.add_event_detect(cfg['gpio']['pin'], GPIO.RISING)
+        GPIO.add_event_detect(cfg['gpio']['pin'], GPIO.RISING)
         return True
     return False
 
