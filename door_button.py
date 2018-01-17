@@ -11,6 +11,12 @@ from meeting_notifier import MeetingNotifier
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
 from graphics.availability_display import AvailabliltyMessage
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    print("Error importing RPi.GPIO! This is probably because you need superuser privileges. You can achieve this by using 'sudo' to run your script")
+except ImportError:
+    pass
 
 #The file to persist data
 DATA_FILE = 'data.yaml'
@@ -24,23 +30,14 @@ def get_counter_instance():
             persisted_data = yaml.load(persisted)
     return KeyPressCounter(persisted_data.get('count', 0), persisted_data.get('date', None))
 
-def init_gpio(cfg, action):
-    """Connects the gpio button events"""
+def init_gpio(cfg):
+    """Init GPIO"""
     # Only initilize GPIO of configured in yaml
     if cfg.get('gpio', False):
-        try:
-            import RPi.GPIO as GPIO
-            pin = cfg['gpio']['pin']
-
-            # Setup GPIO
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-            # Add event detection
-            GPIO.add_event_detect(pin, GPIO.FALLING, callback=action, bouncetime=300)
-            return True
-        except RuntimeError:
-            print("Error importing RPi.GPIO! This is probably because you need superuser privileges. You can achieve this by using 'sudo' to run your script")
+        # Setup GPIO
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(cfg['gpio']['pin'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        return True
     return False
 
 def init_pygame(cfg):
@@ -63,7 +60,7 @@ def init_pygame(cfg):
     pg.init()
     return game_display
 
-def button_pressed_action(meeting_providers, key_press_counter):
+def button_pressed_action(meeting_providers, key_press_counter, message_player):
     """
     Execute actions on button presses
     """
@@ -116,7 +113,7 @@ def main():
             ))
 
     # Setup GPIO
-    gpio = init_gpio(cfg, button_pressed_action)
+    gpio = init_gpio(cfg)
 
     clock = pg.time.Clock()
     background = bg.Background(
@@ -134,7 +131,7 @@ def main():
             if gpio and GPIO.input(cfg['gpio']['pin']):
                 if press_ticks > 5:
                     press_ticks = 0
-                    button_pressed_action(meeting_providers, key_press_counter)
+                    button_pressed_action(meeting_providers, key_press_counter, message_player)
                 else:
                     press_ticks += 1
 
@@ -157,7 +154,7 @@ def main():
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
-                        button_pressed_action(meeting_providers, key_press_counter)
+                        button_pressed_action(meeting_providers, key_press_counter, message_player)
                     if event.key == pg.K_ESCAPE:
                         running = False
 
