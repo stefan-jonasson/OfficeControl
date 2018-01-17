@@ -16,7 +16,8 @@ ical:
     url: # An http(s) url to an ical calendar
     pos_x: 537 # X coordinate for where the office worker is localed
     pos_y: 516 # Y coordinate for where the office worker is localed
-    offset: -120 # Offset the info box this many pixels
+    ballon_x: 470 # X coordinate for where the information ballon is located (top left corner)
+    ballon_y: 177 # Y coordinate for where the information ballon is located (top left corner)    
     image: stefan.jpg # Image of the office worker
   - name: ..
     url: ..
