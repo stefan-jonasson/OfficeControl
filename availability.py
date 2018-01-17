@@ -145,11 +145,14 @@ class Meeting():
     def get_location(self):
         """Return the current location or empty"""
         if self.event is not None:
-            location = self.event.decoded('location')
-            if location is not None:
-                location = location.decode("utf-8", "ignore")
-                location.replace("_", " ").replace("Konf ", "Konferensrum ")
-                return location
+            try:
+                location = self.event.decoded('location')
+                if location is not None:
+                    location = location.decode("utf-8", "ignore")
+                    location.replace("_", " ").replace("Konf ", "Konferensrum ")
+                    return location
+            except KeyError:
+                return "Okänd"
         return ""
 
     def get_summary(self):
