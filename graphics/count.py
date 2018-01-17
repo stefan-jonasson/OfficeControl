@@ -20,7 +20,7 @@ class ButtonCount:
                                   big_font,
                                   (20, 20, 20))
 
-        self.ballout = Ballout(230, 96, location, -50)
+        self.ballout = Ballout(230, 96, location, (28, 10))
         self.image = Image('assets/button.png')
 
 

@@ -10,13 +10,13 @@ class AvailabliltyMessage:
     Composes the texts to be displayed
     """
     def __init__(self, name: str, availablilty_provider: AvialabilitySchduler,
-                 location: tuple, offset: int, avatar: str):
+                 location: tuple, ballonloc: tuple, avatar: str):
         self.availablilty_provider = availablilty_provider
         self._text = MeetingText(name, None)
         self._upcomming_meeting = None
         self._upcomming_meeting_sprite = None
         self._image = Image(avatar)
-        self._ballout = Ballout(100, 50, location, offset)
+        self._ballout = Ballout(100, 50, location, ballonloc)
 
     def update(self):
         """updates the meeting information"""
@@ -49,10 +49,8 @@ class AvailabliltyMessage:
         render_sprite_at_pos(surface, self._text, (base_pos[0] + text_left, base_pos[1]))
 
         if self._upcomming_meeting_sprite is not None:
-            if self._ballout.offset < 0:
-                self._upcomming_meeting_sprite.rect.topright = (base_pos[0] - 10, base_pos[1])
-            else:
-                self._upcomming_meeting_sprite.rect.topleft = (base_pos[0] + self._ballout.width + 10, base_pos[1])
+            self._upcomming_meeting_sprite.rect.topright = (base_pos[0] - 10, base_pos[1])
+            self._upcomming_meeting_sprite.rect.topleft = (base_pos[0] + self._ballout.width + 10, base_pos[1])
             self._upcomming_meeting_sprite.render(surface)
 
 class MeetingText:
