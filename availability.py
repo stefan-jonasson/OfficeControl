@@ -148,9 +148,7 @@ class Meeting():
             try:
                 location = self.event.decoded('location')
                 if location is not None:
-                    location = location.decode("utf-8", "ignore")
-                    location.replace("_", " ").replace("Konf ", "Konferensrum ")
-                    return location
+                    return location.decode("utf-8", "ignore").replace("_Konf ", "")
             except KeyError:
                 return "Okänd"
         return ""
