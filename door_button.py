@@ -143,8 +143,10 @@ def main():
     running = True
     while running:
         try:
-            if gpio and GPIO.event_detected(cfg['gpio']['pin']) == GPIO.HIGH:
-                button_pressed_action(meeting_providers, key_press_counter, message_player)
+            if gpio and GPIO.event_detected(cfg['gpio']['pin']):
+                button_pressed_action(meeting_providers,
+                                      key_press_counter,
+                                      message_player)
 
             key_press_counter.update()
             message_player.update()
