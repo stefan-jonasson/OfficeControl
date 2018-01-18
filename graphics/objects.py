@@ -5,7 +5,6 @@ import pygame.gfxdraw
 FOREGROUND = (40, 40, 40)
 BACKGROUND = (255, 255, 255)
 ACCENT = (100, 100, 100)
-OFFSET_HEIGHT = -50
 LEFT = 0
 RIGHT = 1
 
@@ -58,20 +57,17 @@ class BorderedRect(RendderableSprite):
 
 class Ballout():
     """ Paint the boubble at the offset from the anchor point """
-    def __init__(self, width: int, height: int, anchor_location: tuple, offset: int):
-        self.offset = offset
+    def __init__(self, width: int, height: int, anchor_location: tuple, balloon_location: tuple):        
         self.anc_x, self.anc_y = anchor_location
+        self.top_x, self.top_y = balloon_location
         self.set_size((width, height))
 
     def set_size(self, size: tuple):
         """ Set the size """
         self.width = size[0]
         self.height = size[1] + 2 #Border should be outside
-        if self.offset < 0:
-            self.top_x = abs(self.anc_x + self.offset - self.width)
-        else:
-            self.top_x = abs(self.anc_x + self.offset)
-        self.top_y = abs(self.anc_y + OFFSET_HEIGHT - self.height - 5)
+        #self.top_x = abs(self.anc_x + self.offset_x - self.width)
+        #self.top_y = abs(self.anc_y + self.offset_y - self.height - 5)
 
     def get_pos(self):
         """ return the position """
@@ -83,10 +79,8 @@ class Ballout():
         # Draw anchor line
         pygame.draw.lines(surface, FOREGROUND, False,
                           [[self.anc_x, self.anc_y],
-                           [self.anc_x + self.offset, self.anc_y + OFFSET_HEIGHT],
-                           [self.anc_x + self.offset +
-                            ((abs(self.offset) / self.offset) * self.width),
-                            self.anc_y + OFFSET_HEIGHT]], 2)
+                           [self.top_x , self.top_y + self.height + 4],
+                           [self.top_x + self.width, self.top_y + self.height + 4]], 2)
 
         # Draw anchor point
         pygame.gfxdraw.aacircle(surface, self.anc_x, self.anc_y, 6, ACCENT)

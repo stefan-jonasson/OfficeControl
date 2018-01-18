@@ -124,7 +124,8 @@ def main():
                 person['name'],
                 availibility,
                 (person.get('pos_x', 0), person.get('pos_y', 0)),
-                person.get('offset', 70), "assets/{}".format(person.get('image', 'unknown.png'))
+                (person.get('ballon_x', 70), person.get('ballon_y', -50)),
+                "assets/{}".format(person.get('image', 'unknown.png'))
             ))
 
 
@@ -134,7 +135,7 @@ def main():
     clock = pg.time.Clock()
     background = bg.Background(
         "assets/{}".format(cfg.get("display", {}).get("background", "room.jpg")), (0, 0))
-    count_text = count.ButtonCount(key_press_counter, (577, 206))
+    count_text = count.ButtonCount(key_press_counter, (185, 206))
 
     print("Door Button Control Ready.")
 

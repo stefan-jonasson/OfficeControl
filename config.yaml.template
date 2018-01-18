@@ -1,23 +1,26 @@
 gpio:
   pin: 24
 ical:
-  - name: Stefan
+ - name: Stefan
     url: 'https://xxx/calendar.ics'
-    pos_x: 537
+    pos_x: 140
     pos_y: 516
-    offset: -120
+    ballon_x: 470
+    ballon_y: 477
     image: stefan.jpg
   - name: Nalle
     url: 'https://xxx/calendar.ics'
-    pos_x: 753
+    pos_x: 350
     pos_y: 353
-    offset: 120
+    ballon_x: 470
+    ballon_y: 177
     image: bjorn.jpg
   - name: Pelle
     url: 'https://xxx/calendar.ics'
-    pos_x: 716
+    pos_x: 318
     pos_y: 510
-    offset: 140
+    ballon_x: 470
+    ballon_y: 300
     image: pelle.jpg
 sound:
   freq: 24000     # audio CD quality
@@ -27,4 +30,4 @@ display:
   width: 1280
   height: 720
   fullscreen: true
-  background: room_720p.png
+  background: room_left_720p.png
