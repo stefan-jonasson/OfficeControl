@@ -52,6 +52,7 @@ def init_pygame(cfg):
                                         displaycfg.get('height', 768)), flags)
 
     pg.display.set_caption('Door Button Control')
+    pg.mouse.set_visible(False)
 
     # Sound settings
     pg.mixer.pre_init(cfg.get('sound', {}).get('freq', 24000),
