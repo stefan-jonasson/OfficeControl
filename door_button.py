@@ -80,7 +80,7 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
     if not pg.mixer.music.get_busy():
         greet = get_greeting_message()
         if greet is not None:
-            message_player.queue_text()
+            message_player.queue_text(greet)
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
             message_player.queue_text(get_availablilty_message(meeting, name))
