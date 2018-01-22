@@ -1,4 +1,5 @@
 """ A clooection of various graphics objects """
+from datetime import datetime
 import pygame
 import pygame.gfxdraw
 
@@ -57,7 +58,7 @@ class BorderedRect(RendderableSprite):
 
 class Ballout():
     """ Paint the boubble at the offset from the anchor point """
-    def __init__(self, width: int, height: int, anchor_location: tuple, balloon_location: tuple):        
+    def __init__(self, width: int, height: int, anchor_location: tuple, balloon_location: tuple):
         self.anc_x, self.anc_y = anchor_location
         self.top_x, self.top_y = balloon_location
         self.set_size((width, height))
@@ -98,13 +99,32 @@ class TextBox(pygame.sprite.Sprite):
         super().__init__()
         self.font = font
         self.color = color
+        self.text = None
         self.set_text(text)
 
     def set_text(self, text):
         """ Set the text to render """
-        self.surface = self.font.render(text, True, self.color)
-        self.rect = self.surface.get_rect()
+        if self.text != text:
+            self.surface = self.font.render(text, True, self.color)
+            self.rect = self.surface.get_rect()
+            self.text = text
+
 
     def render(self, display):
         """render at the specified display position"""
-        display.blit(self.surface, self.rect)
+        if self.surface:
+            display.blit(self.surface, self.rect)
+
+class Clock:
+    """
+    Renders a text in a box
+    """
+    def __init__(self, topleft: tuple):
+        self.topleft = topleft
+        self.time_text = TextBox("", pygame.font.Font("assets/FreeSansBold.ttf", 50), FOREGROUND)
+
+    def render(self, display):
+        """render at the specified display position"""
+        self.time_text.set_text(datetime.now().strftime("%H:%M:%S"))
+        self.time_text.rect.topleft = self.topleft
+        self.time_text.render(display)

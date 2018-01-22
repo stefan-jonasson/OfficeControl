@@ -10,6 +10,7 @@ from meeting_notifier import MeetingNotifier
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
 from graphics.availability_display import AvailabliltyMessage
+from graphics.objects import Clock
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -137,7 +138,7 @@ def main():
     background = bg.Background(
         "assets/{}".format(cfg.get("display", {}).get("background", "room.jpg")), (0, 0))
     count_text = count.ButtonCount(key_press_counter, (185, 206))
-
+    clock_widget = Clock((1000, 20))
     print("Door Button Control Ready.")
 
     #render_count_screen(game_display, key_press_counter.get_count())
@@ -157,6 +158,8 @@ def main():
             count_text.render(game_display)
             for message in availability_text:
                 message.render(game_display)
+
+            clock_widget.render(game_display)
 
             for meeting_notifier in meeting_notifiers:
                 meeting_notifier.update()
