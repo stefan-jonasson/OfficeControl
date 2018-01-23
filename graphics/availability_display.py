@@ -5,6 +5,16 @@ import pygame
 from availability import AvialabilitySchduler, Meeting
 from graphics.objects import Image, Ballout, TextBox, ACCENT, BorderedRect
 
+#the background colors for available/busy
+DEFAULT_BGCOLOR = (255, 255, 255)
+AVAILABLE_BGCOLOR = (127, 147, 121)
+BUSY_BGCOLOR = (171, 43, 51)
+
+#The default textcolors
+DEFAULT_FGCOLOR = (0, 0, 0)
+AVAILABLE_FGCOLOR = (0, 0, 0)
+BUSY_FGCOLOR = (255, 255, 255)
+
 class AvailabliltyMessage:
     """
     Composes the texts to be displayed
@@ -23,6 +33,8 @@ class AvailabliltyMessage:
         self._text.set_meeting(
             self.availablilty_provider.get_current_meeting())
 
+        self._ballout.set_color(self._text.get_bgcolor())
+
         upcomming_meeting = self.availablilty_provider.get_next_meeting()
         if upcomming_meeting != self._upcomming_meeting:
             self._upcomming_meeting = upcomming_meeting
@@ -33,7 +45,7 @@ class AvailabliltyMessage:
 
     def _get_content_size(self):
         """returns the size of the content"""
-        return (self._text.rect.width + self._image.rect.width + 21,
+        return (self._text.rect.width + self._image.rect.width + 4,
                 max(self._text.rect.height, self._image.rect.height) + 2)
 
     def render(self, surface):
@@ -44,7 +56,7 @@ class AvailabliltyMessage:
 
         base_pos = self._ballout.get_pos()
         # Render with 5px margin after the image
-        text_left = self._image.rect.width + 10
+        text_left = self._image.rect.width
         render_sprite_at_pos(surface, self._image, base_pos)
         render_sprite_at_pos(surface, self._text, (base_pos[0] + text_left, base_pos[1]))
 
@@ -62,16 +74,18 @@ class MeetingText:
         small_font = pygame.font.Font("assets/FreeSansBold.ttf", 12)
         self._text_header = TextBox(title,
                                     big_font,
-                                    ACCENT)
+                                    DEFAULT_FGCOLOR)
         self._text_summary = TextBox("Laddar...",
                                      small_font,
-                                     (20, 20, 20))
+                                     DEFAULT_FGCOLOR)
         self._text_location = TextBox("",
                                       small_font,
-                                      (20, 20, 20))
+                                      DEFAULT_FGCOLOR)
         self._text_duration = TextBox("",
                                       small_font,
-                                      (20, 20, 20))
+                                      DEFAULT_FGCOLOR)
+        self._bgcolor = DEFAULT_BGCOLOR
+        self._fgcolor = DEFAULT_FGCOLOR
         self.current_meeting = None
         self.set_meeting(meeting)
         self._set_image_prop()
@@ -80,21 +94,35 @@ class MeetingText:
         """Reload the dynamic text parts"""
         if self.current_meeting != meeting:
             self.current_meeting = meeting
-            if not meeting.is_available():
+            if not meeting.is_available():                
+                self._bgcolor = BUSY_BGCOLOR
+                self._fgcolor = BUSY_FGCOLOR
                 self._text_summary.set_text(meeting.get_summary())
                 self._text_location.set_text("Plats: {}".format(meeting.get_location()))
                 self._text_duration.set_text("Åter: {}".format(meeting.get_end_time()))
             else:
+                self._bgcolor = AVAILABLE_BGCOLOR
+                self._fgcolor = AVAILABLE_FGCOLOR
                 self._text_summary.set_text("Tillgänglig")
                 self._text_location.set_text("")
                 self._text_duration.set_text("")
+                self._bgcolor = AVAILABLE_BGCOLOR
+
+            self._text_header.set_color(self._fgcolor)
+            self._text_summary.set_color(self._fgcolor)
+            self._text_location.set_color(self._fgcolor)
+            self._text_duration.set_color(self._fgcolor)
             self._set_image_prop()
+
+    def get_bgcolor(self):
+        """Gets the current background color"""
+        return self._bgcolor
 
     def _set_image_prop(self):
         """Create surface and rect roperties"""
         size = self.get_content_size()
         self.image = pygame.surface.Surface(size)
-        self.image.fill((255, 255, 255))
+        self.image.fill(self._bgcolor)
         self.rect = pygame.rect.Rect(0, 0, size[0], size[1])
         self._render_text()
 
@@ -108,13 +136,13 @@ class MeetingText:
                               self._text_duration):
             width = max(text_provider.rect.width, width)
             height += (text_provider.rect.height)
-        return (width, height) # Add some padding after the text
+        return (width + 21, height + 7) # Add some padding after the text
 
     def _render_text(self):
-        render_sprite_at_pos(self.image, self._text_header, (0, 0))
-        render_sprite_at_pos(self.image, self._text_summary, (0, 30))
-        render_sprite_at_pos(self.image, self._text_location, (0, 50))
-        render_sprite_at_pos(self.image, self._text_duration, (0, 70))
+        render_sprite_at_pos(self.image, self._text_header, (5, 0))
+        render_sprite_at_pos(self.image, self._text_summary, (5, 30))
+        render_sprite_at_pos(self.image, self._text_location, (5, 50))
+        render_sprite_at_pos(self.image, self._text_duration, (5, 70))
 
     def render(self, surface):
         """render at the specified display position"""

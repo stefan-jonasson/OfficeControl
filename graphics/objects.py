@@ -1,10 +1,13 @@
 """ A clooection of various graphics objects """
+from datetime import datetime
+import pytz
 import pygame
 import pygame.gfxdraw
 
 FOREGROUND = (40, 40, 40)
 BACKGROUND = (255, 255, 255)
 ACCENT = (100, 100, 100)
+AVAILABLE_COLOR = (127, 147, 121)
 LEFT = 0
 RIGHT = 1
 
@@ -57,9 +60,10 @@ class BorderedRect(RendderableSprite):
 
 class Ballout():
     """ Paint the boubble at the offset from the anchor point """
-    def __init__(self, width: int, height: int, anchor_location: tuple, balloon_location: tuple):        
+    def __init__(self, width: int, height: int, anchor_location: tuple, balloon_location: tuple):
         self.anc_x, self.anc_y = anchor_location
         self.top_x, self.top_y = balloon_location
+        self.color = FOREGROUND
         self.set_size((width, height))
 
     def set_size(self, size: tuple):
@@ -73,18 +77,22 @@ class Ballout():
         """ return the position """
         return (self.top_x + 2, self.top_y + 2)
 
+    def set_color(self, color: tuple):
+        """ Sets the color of lines and dot """
+        self.color = color
+
     def render(self, surface):
         """ render at the specified display position """
 
         # Draw anchor line
-        pygame.draw.lines(surface, FOREGROUND, False,
+        pygame.draw.lines(surface, self.color, False,
                           [[self.anc_x, self.anc_y],
                            [self.top_x , self.top_y + self.height + 4],
                            [self.top_x + self.width, self.top_y + self.height + 4]], 2)
 
         # Draw anchor point
-        pygame.gfxdraw.aacircle(surface, self.anc_x, self.anc_y, 6, ACCENT)
-        pygame.gfxdraw.filled_circle(surface, self.anc_x, self.anc_y, 6, ACCENT)
+        pygame.gfxdraw.aacircle(surface, self.anc_x, self.anc_y, 6, self.color)
+        pygame.gfxdraw.filled_circle(surface, self.anc_x, self.anc_y, 6, self.color)
 
         # Draw box then border
         box = BorderedRect(pygame.Rect(self.top_x, self.top_y, self.width, self.height))
@@ -98,13 +106,40 @@ class TextBox(pygame.sprite.Sprite):
         super().__init__()
         self.font = font
         self.color = color
+        self.text = None
         self.set_text(text)
 
     def set_text(self, text):
         """ Set the text to render """
-        self.surface = self.font.render(text, True, self.color)
-        self.rect = self.surface.get_rect()
+        if self.text != text:
+            self.surface = self.font.render(text, True, self.color)
+            self.rect = self.surface.get_rect()
+            self.text = text
+
+    def set_color(self, color):
+        """ Set the text to render """
+        if self.color != color:
+            self.surface = self.font.render(self.text, True, color)
+            self.rect = self.surface.get_rect()
+            self.color = color
+
 
     def render(self, display):
         """render at the specified display position"""
-        display.blit(self.surface, self.rect)
+        if self.surface:
+            display.blit(self.surface, self.rect)
+
+class Clock:
+    """
+    Renders a text in a box
+    """
+    def __init__(self, topleft: tuple, time_zone: pytz.timezone):
+        self.topleft = topleft
+        self.timezone = time_zone
+        self.time_text = TextBox("", pygame.font.Font("assets/FreeSansBold.ttf", 50), FOREGROUND)
+
+    def render(self, display):
+        """render at the specified display position"""
+        self.time_text.set_text(datetime.now(self.timezone).strftime("%H:%M:%S"))
+        self.time_text.rect.topleft = self.topleft
+        self.time_text.render(display)

@@ -2,6 +2,7 @@
 """Various actions for our office door button"""
 import os
 import datetime
+import pytz
 import pygame as pg
 import yaml
 from availability import AvialabilitySchduler, get_availablilty_message
@@ -10,6 +11,7 @@ from meeting_notifier import MeetingNotifier
 from ttsplay import TextMessagePlayer
 from graphics import bg, count
 from graphics.availability_display import AvailabliltyMessage
+from graphics.objects import Clock
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -52,6 +54,7 @@ def init_pygame(cfg):
                                         displaycfg.get('height', 768)), flags)
 
     pg.display.set_caption('Door Button Control')
+    pg.mouse.set_visible(False)
 
     # Sound settings
     pg.mixer.pre_init(cfg.get('sound', {}).get('freq', 24000),
@@ -80,7 +83,7 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
     if not pg.mixer.music.get_busy():
         greet = get_greeting_message()
         if greet is not None:
-            message_player.queue_text()
+            message_player.queue_text(greet)
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
             message_player.queue_text(get_availablilty_message(meeting, name))
@@ -136,7 +139,7 @@ def main():
     background = bg.Background(
         "assets/{}".format(cfg.get("display", {}).get("background", "room.jpg")), (0, 0))
     count_text = count.ButtonCount(key_press_counter, (185, 206))
-
+    clock_widget = Clock((1000, 20), pytz.timezone("CET"))
     print("Door Button Control Ready.")
 
     #render_count_screen(game_display, key_press_counter.get_count())
@@ -156,6 +159,8 @@ def main():
             count_text.render(game_display)
             for message in availability_text:
                 message.render(game_display)
+
+            clock_widget.render(game_display)
 
             for meeting_notifier in meeting_notifiers:
                 meeting_notifier.update()
