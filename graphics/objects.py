@@ -1,5 +1,6 @@
 """ A clooection of various graphics objects """
 from datetime import datetime
+import pytz
 import pygame
 import pygame.gfxdraw
 
@@ -119,12 +120,13 @@ class Clock:
     """
     Renders a text in a box
     """
-    def __init__(self, topleft: tuple):
+    def __init__(self, topleft: tuple, time_zone: pytz.timezone):
         self.topleft = topleft
+        self.timezone = time_zone
         self.time_text = TextBox("", pygame.font.Font("assets/FreeSansBold.ttf", 50), FOREGROUND)
 
     def render(self, display):
         """render at the specified display position"""
-        self.time_text.set_text(datetime.now().strftime("%H:%M:%S"))
+        self.time_text.set_text(datetime.now(self.timezone).strftime("%H:%M:%S"))
         self.time_text.rect.topleft = self.topleft
         self.time_text.render(display)

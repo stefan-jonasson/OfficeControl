@@ -2,6 +2,7 @@
 """Various actions for our office door button"""
 import os
 import datetime
+import pytz
 import pygame as pg
 import yaml
 from availability import AvialabilitySchduler, get_availablilty_message
@@ -138,7 +139,7 @@ def main():
     background = bg.Background(
         "assets/{}".format(cfg.get("display", {}).get("background", "room.jpg")), (0, 0))
     count_text = count.ButtonCount(key_press_counter, (185, 206))
-    clock_widget = Clock((1000, 20))
+    clock_widget = Clock((1000, 20), pytz.timezone("CET"))
     print("Door Button Control Ready.")
 
     #render_count_screen(game_display, key_press_counter.get_count())
