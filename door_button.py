@@ -67,11 +67,13 @@ def get_greeting_message():
     """Play some greeting depending on the time of day"""
     now = datetime.datetime.now()
     if now.hour >= 7 and now.hour < 9:
-        return "Good morning"
-    elif now.hour >= 15 and now.hour < 16:
-        return "Good afternoon"
+        return "God morgon"
+    elif now.hour >= 11 and now.hour <= 13:
+        return "God middag"
+    elif now.hour >= 15 and now.hour <= 16:
+        return "God eftermiddag"
     elif now.hour >= 16 and now.hour < 21:
-        return "Good evening"
+        return "God kväll"
     return None
 
 def button_pressed_action(meeting_providers, key_press_counter, message_player):
@@ -86,7 +88,12 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
             message_player.queue_text(greet)
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
-            message_player.queue_text(get_availablilty_message(meeting, name))
+            if meeting is not None:
+                message_player.queue_text(get_availablilty_message(meeting, name))
+                meetingexists += 1
+        if meetingexists is None:
+            message_player.queue_text(
+            "Grattis ingen person i rummet har ett möte bokat och kan finnas tillgänlig för dig".format(key_press_counter.get_count()))
 
         message_player.queue_text(
             "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
