@@ -86,14 +86,15 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
         greet = get_greeting_message()
         if greet is not None:
             message_player.queue_text(greet)
+        meeting_exists = False
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
             if meeting is not None:
                 message_player.queue_text(get_availablilty_message(meeting, name))
-                meetingexists += 1
-        if meetingexists is None:
+                meeting_exists = True
+        if meeting_exists:
             message_player.queue_text(
-            "Grattis ingen person i rummet har ett möte bokat och kan finnas tillgänlig för dig".format(key_press_counter.get_count()))
+            "Grattis ingen person i rummet har möte bokat och finns kanske tillgänglig för dig")
 
         message_player.queue_text(
             "Knappen har tryckts {} gånger under dagen".format(key_press_counter.get_count()))
