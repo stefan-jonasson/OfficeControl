@@ -103,7 +103,7 @@ class MeetingText:
             else:
                 self._bgcolor = AVAILABLE_BGCOLOR
                 self._fgcolor = AVAILABLE_FGCOLOR
-                self._text_summary.set_text("Tillgänglig")
+                self._text_summary.set_text("Inget möte bokat")
                 self._text_location.set_text("")
                 self._text_duration.set_text("")
                 self._bgcolor = AVAILABLE_BGCOLOR
@@ -157,14 +157,24 @@ class UpcommingMeeting:
         medium_font = pygame.font.Font("assets/FreeSansBold.ttf", 15)
         small_font = pygame.font.Font("assets/FreeSansBold.ttf", 10)
 
-        self._text_summary = TextBox(meeting.get_summary(),
+        summary = meeting.get_summary()
+        location = meeting.get_location()
+        if not summary:
+            summary = "Okänt möte"
+        if not location:
+            location = "Okänd plats"
+
+        self._text_heading = TextBox("Kommande möte:",
+                                     small_font,
+                                     (20, 20, 20))
+        self._text_summary = TextBox(summary,
                                      medium_font,
                                      (20, 20, 20))
-        self._text_location = TextBox(meeting.get_location(),
+        self._text_location = TextBox(location,
                                       small_font,
                                       (20, 20, 20))
-        self._text_duration = TextBox(meeting.get_start_time(),
-                                      big_font,
+        self._text_duration = TextBox(meeting.get_start_time() + " -- " + meeting.get_end_time(),
+                                      medium_font,
                                       ACCENT)
 
         size = self.get_content_size()
@@ -178,16 +188,18 @@ class UpcommingMeeting:
         """Calculate the max width of the current text"""
         width = 100
         height = 10
-        for text_provider in (self._text_summary,
+        for text_provider in (self._text_heading,
+                              self._text_summary,
                               self._text_location,
                               self._text_duration):
             width = max(text_provider.rect.width, width)
             height += text_provider.rect.height + 5
-        return (width + 10, height) # Add some padding after the text
+        return (width + 10, 96+4) # Add some padding after the text
 
     def _render_text(self):
-        render_sprite_at_pos(self.image, self._text_summary, (5, 10))
-        render_sprite_at_pos(self.image, self._text_location, (5, 35))
+        render_sprite_at_pos(self.image, self._text_heading, (5, 5))
+        render_sprite_at_pos(self.image, self._text_summary, (5, 20))
+        render_sprite_at_pos(self.image, self._text_location, (5, 38))
         render_sprite_at_pos(self.image, self._text_duration, (5, 55))
 
     def render(self, surface):
