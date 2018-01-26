@@ -20,7 +20,7 @@ class ButtonCount:
                                   big_font,
                                   (20, 20, 20))
 
-        self.ballout = Ballout(230, 96, location, (28, 10))
+        self.ballout = Ballout(230, 98, location, (28, 10))
         self.image = Image('assets/button.png')
 
 
@@ -31,7 +31,8 @@ class ButtonCount:
         pos = self.ballout.get_pos()
 
         # Render Image
-        self.image.rect.left, self.image.rect.top = pos
+        self.image.rect.left = pos[0] + 2
+        self.image.rect.top = pos[1] + 2
         self.image.render(surface)
 
         # Render text header

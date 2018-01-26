@@ -170,6 +170,12 @@ class Meeting():
             return _get_time_as_text(self.event.get('dtstart').dt)
         return ""
 
+    def get_start_time_datetime(self):
+        """Return the current meeting"""
+        if self.event is not None:
+            return self.event.get('dtstart').dt
+        return None
+
     def get_end_time(self):
         """Return the current meeting"""
         if self.event is not None:
