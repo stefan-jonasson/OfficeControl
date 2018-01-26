@@ -89,6 +89,7 @@ def button_pressed_action(meeting_providers, key_press_counter, message_player):
         meeting_exists = False
         for (name, provider) in meeting_providers:
             meeting = provider.get_current_meeting()
+
             if (meeting is not None and not meeting.is_available()):
                 message_player.queue_text(get_availablilty_message(meeting, name))
                 meeting_exists = True
