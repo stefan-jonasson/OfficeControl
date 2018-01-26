@@ -3,7 +3,7 @@ Renders the availablilty message in a specified box
 """
 import pygame
 from availability import AvialabilitySchduler, Meeting
-from graphics.objects import Image, Ballout, TextBox, ACCENT, BorderedRect
+from graphics.objects import Image, Ballout, TextBox, ACCENT, BorderedRect, TimeLine
 
 #the background colors for available/busy
 DEFAULT_BGCOLOR = (255, 255, 255)
@@ -39,14 +39,16 @@ class AvailabliltyMessage:
         if upcomming_meeting != self._upcomming_meeting:
             self._upcomming_meeting = upcomming_meeting
             if upcomming_meeting is not None:
-                self._upcomming_meeting_sprite = UpcommingMeeting(upcomming_meeting)
+                size = self._get_content_size()
+                self._upcomming_meeting_sprite = UpcommingMeetingWithTimeline(
+                    upcomming_meeting, size[1])
             else:
                 self._upcomming_meeting_sprite = None
 
     def _get_content_size(self):
         """returns the size of the content"""
         return (self._text.rect.width + self._image.rect.width + 4,
-                max(self._text.rect.height, self._image.rect.height) + 2)
+                max(self._text.rect.height, self._image.rect.height) + 4)
 
     def render(self, surface):
         """render at the specified display position"""
@@ -56,13 +58,13 @@ class AvailabliltyMessage:
 
         base_pos = self._ballout.get_pos()
         # Render with 5px margin after the image
-        text_left = self._image.rect.width
-        render_sprite_at_pos(surface, self._image, base_pos)
-        render_sprite_at_pos(surface, self._text, (base_pos[0] + text_left, base_pos[1]))
+        text_left = self._image.rect.width + 2
+        render_sprite_at_pos(surface, self._image, (base_pos[0] + 2, base_pos[1] + 2))
+        render_sprite_at_pos(surface, self._text, (base_pos[0] + text_left, base_pos[1] + 2))
 
         if self._upcomming_meeting_sprite is not None:
-            self._upcomming_meeting_sprite.rect.topright = (base_pos[0] - 10, base_pos[1])
-            self._upcomming_meeting_sprite.rect.topleft = (base_pos[0] + self._ballout.width + 10, base_pos[1])
+            self._upcomming_meeting_sprite.rect.topleft = (base_pos[0] + self._ballout.width + 10,
+                                                           base_pos[1])
             self._upcomming_meeting_sprite.render(surface)
 
 class MeetingText:
@@ -94,7 +96,7 @@ class MeetingText:
         """Reload the dynamic text parts"""
         if self.current_meeting != meeting:
             self.current_meeting = meeting
-            if not meeting.is_available():                
+            if not meeting.is_available():
                 self._bgcolor = BUSY_BGCOLOR
                 self._fgcolor = BUSY_FGCOLOR
                 self._text_summary.set_text(meeting.get_summary())
@@ -103,7 +105,7 @@ class MeetingText:
             else:
                 self._bgcolor = AVAILABLE_BGCOLOR
                 self._fgcolor = AVAILABLE_FGCOLOR
-                self._text_summary.set_text("Tillgänglig")
+                self._text_summary.set_text("Inget möte bokat")
                 self._text_location.set_text("")
                 self._text_duration.set_text("")
                 self._bgcolor = AVAILABLE_BGCOLOR
@@ -148,46 +150,87 @@ class MeetingText:
         """render at the specified display position"""
         surface.blit(self.image, self.rect)
 
+class UpcommingMeetingWithTimeline:
+    """
+    Composes the texts to be displayed
+    """
+    def __init__(self, meeting: Meeting, height: int):
+        medium_font = pygame.font.Font("assets/FreeSansBold.ttf", 15)
+        self._time_line = TimeLine((0, 30),
+                                   meeting.get_start_time_datetime(),
+                                   medium_font,
+                                   (20, 20, 20))
+        self._next_meeting = UpcommingMeeting(meeting, height)
+        self.image = pygame.surface.Surface((self.get_content_width(), height))
+        self.rect = self.image.get_rect()
+        self.image.set_colorkey(DEFAULT_BGCOLOR)
+
+    def get_content_width(self):
+        """Calculate the max width of the current text"""
+        return  self._time_line.rect.width + self._next_meeting.rect.width + 4
+
+    def update(self):
+        """Update the surface content"""
+        self.image.fill(DEFAULT_BGCOLOR)
+        self.image.set_colorkey(DEFAULT_BGCOLOR)
+        self._time_line.update()
+        self._time_line.render(self.image)
+        self._next_meeting.rect.left = self._time_line.rect.width + 4
+        self._next_meeting.render(self.image)
+
+    def render(self, surface):
+        """render at the specified display position"""
+        self.update()
+        surface.blit(self.image, self.rect)
+
 class UpcommingMeeting:
     """
     Composes the texts to be displayed
     """
-    def __init__(self, meeting: Meeting):
-        big_font = pygame.font.Font("assets/FreeSansBold.ttf", 20)
+    def __init__(self, meeting: Meeting, height: int):
         medium_font = pygame.font.Font("assets/FreeSansBold.ttf", 15)
         small_font = pygame.font.Font("assets/FreeSansBold.ttf", 10)
+        summary = meeting.get_summary()
+        location = meeting.get_location()
 
-        self._text_summary = TextBox(meeting.get_summary(),
+        if not summary:
+            summary = "Okänt möte"
+        if not location:
+            location = "Okänd plats"
+
+        self._text_heading = TextBox("Kommande möte:",
+                                     small_font,
+                                     (20, 20, 20))
+        self._text_summary = TextBox(summary,
                                      medium_font,
                                      (20, 20, 20))
-        self._text_location = TextBox(meeting.get_location(),
+        self._text_location = TextBox(location,
                                       small_font,
                                       (20, 20, 20))
-        self._text_duration = TextBox(meeting.get_start_time(),
-                                      big_font,
+        self._text_duration = TextBox(meeting.get_start_time() + " - " + meeting.get_end_time(),
+                                      medium_font,
                                       ACCENT)
 
-        size = self.get_content_size()
 
-        background = BorderedRect(pygame.rect.Rect(0, 0, size[0], size[1]))
+        background = BorderedRect(pygame.rect.Rect(0, 0, self.get_content_width() + 10, height))
         self.image = background.image
         self.rect = background.rect
         self._render_text()
 
-    def get_content_size(self):
+    def get_content_width(self):
         """Calculate the max width of the current text"""
         width = 100
-        height = 10
-        for text_provider in (self._text_summary,
+        for text_provider in (self._text_heading,
+                              self._text_summary,
                               self._text_location,
                               self._text_duration):
             width = max(text_provider.rect.width, width)
-            height += text_provider.rect.height + 5
-        return (width + 10, height) # Add some padding after the text
+        return width
 
     def _render_text(self):
-        render_sprite_at_pos(self.image, self._text_summary, (5, 10))
-        render_sprite_at_pos(self.image, self._text_location, (5, 35))
+        render_sprite_at_pos(self.image, self._text_heading, (5, 5))
+        render_sprite_at_pos(self.image, self._text_summary, (5, 20))
+        render_sprite_at_pos(self.image, self._text_location, (5, 38))
         render_sprite_at_pos(self.image, self._text_duration, (5, 55))
 
     def render(self, surface):
