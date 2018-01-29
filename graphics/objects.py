@@ -180,7 +180,7 @@ class TimeLine(RendderableSprite):
             minutes -= hours * 60
             return "{}h {}m {}s".format(hours, minutes, floor(diff % 60))
 
-        return "{}min {}s".format(minutes, floor(diff % 60))
+        return "{}m {}s".format(minutes, floor(diff % 60))
 
     def update(self):
         """Update the image surface"""
