@@ -1,5 +1,6 @@
 """ A clooection of various graphics objects """
 from datetime import datetime
+from math import floor
 import pytz
 import pygame
 import pygame.gfxdraw
@@ -157,10 +158,9 @@ class TimeLine(RendderableSprite):
         self._top_left = top_left
         self._start_time = start_time
         self._color = color
-        self._width = None
         self.rect = None
         self.image = None
-        self.time_text = TextBox(self.time_to_eta(), font, color)
+        self.time_text = TextBox("", font, color)
         self.update()
 
     def get_time_diff(self):
@@ -169,24 +169,24 @@ class TimeLine(RendderableSprite):
 
     def get_time_pixels(self):
         """Calculate the time in pixels"""
-        return round(self.get_time_diff() / 15)
+        return floor(self.get_time_diff() / 15)
 
     def time_to_eta(self):
         """Get a formatted string for the time diff"""
         diff = self.get_time_diff()
-        minutes = round(diff / 60)
+        minutes = floor(diff // 60)
         if diff > 3600:
-            hours = round(diff / 3600)
+            hours = floor(diff // 3600)
             minutes -= hours * 60
-            return "{}h {}min".format(hours, minutes)
+            return "{}h {}m {}s".format(hours, minutes, floor(diff % 60))
 
-        return "{} minuter".format(minutes)
+        return "{}min {}s".format(minutes, floor(diff % 60))
 
     def update(self):
         """Update the image surface"""
-        if self._width != self.get_time_pixels():
-            self._width = self.get_time_pixels()
-            self.image = pygame.surface.Surface((self._width, 50))
+        if self.time_text.text != self.time_to_eta():
+            width = self.get_time_pixels()
+            self.image = pygame.surface.Surface((width, 50))
             self.image.fill(BACKGROUND)
             self.image.set_colorkey(BACKGROUND)
 
@@ -194,7 +194,7 @@ class TimeLine(RendderableSprite):
             self.rect.topleft = self._top_left
 
             self.time_text.set_text(self.time_to_eta())
-            if self._width > self.time_text.rect.width:
+            if width > self.time_text.rect.width:
                 self.time_text.rect.topleft = self.rect.topleft
                 self.time_text.render(self.image)
-            pygame.draw.line(self.image, self._color, (0, 48), (self._width, 48), 2)
+            pygame.draw.line(self.image, self._color, (0, 48), (width, 48), 2)

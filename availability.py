@@ -2,6 +2,7 @@
 """Load meetings for an online calendar"""
 from datetime import datetime, timedelta, time
 from threading import RLock, Thread
+from math import floor
 import time as t
 import re
 
@@ -185,7 +186,7 @@ class Meeting():
     def get_mimutes_to_start(self):
         """Return the current meeting"""
         if self.event is not None:
-            return round((self.event.get('dtstart').dt -
+            return floor((self.event.get('dtstart').dt -
                           datetime.now(_TIME_ZONE)).total_seconds() / 60)
         return None
 
