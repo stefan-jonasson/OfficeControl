@@ -17,7 +17,8 @@ class RendderableSprite(pygame.sprite.Sprite):
 
     def render(self, surface):
         """ Render according the the rect """
-        surface.blit(self.image, self.rect)
+        if self.image is not None:
+            surface.blit(self.image, self.rect)
 
 
 class Image(RendderableSprite):
@@ -186,15 +187,16 @@ class TimeLine(RendderableSprite):
         """Update the image surface"""
         if self.time_text.text != self.time_to_eta():
             width = self.get_time_pixels()
-            self.image = pygame.surface.Surface((width, 50))
-            self.image.fill(BACKGROUND)
-            self.image.set_colorkey(BACKGROUND)
+            if width > 0:
+                self.image = pygame.surface.Surface((width, 50))
+                self.image.fill(BACKGROUND)
+                self.image.set_colorkey(BACKGROUND)
 
-            self.rect = self.image.get_rect()
-            self.rect.topleft = self._top_left
+                self.rect = self.image.get_rect()
+                self.rect.topleft = self._top_left
 
-            self.time_text.set_text(self.time_to_eta())
-            if width > self.time_text.rect.width:
-                self.time_text.rect.topleft = self.rect.topleft
-                self.time_text.render(self.image)
-            pygame.draw.line(self.image, self._color, (0, 48), (width, 48), 2)
+                self.time_text.set_text(self.time_to_eta())
+                if width > self.time_text.rect.width:
+                    self.time_text.rect.topleft = self.rect.topleft
+                    self.time_text.render(self.image)
+                pygame.draw.line(self.image, self._color, (0, 48), (width, 48), 2)
