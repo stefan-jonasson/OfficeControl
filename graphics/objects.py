@@ -159,7 +159,7 @@ class TimeLine(RendderableSprite):
         self._top_left = top_left
         self._start_time = start_time
         self._color = color
-        self.rect = None
+        self.rect = pygame.rect.Rect(0, 0, 0, 0)
         self.image = None
         self.time_text = TextBox("", font, color)
         self.update()
